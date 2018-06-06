@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import javafx.scene.text.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<?import java.net.URL?>
+
+<AnchorPane prefHeight="300.0" prefWidth="470.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="passwordkeeper.controller.StorageCreatorWindowController">
+    <children>
+        <CheckBox fx:id="cb_useDefault" focusTraversable="false" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="275.0" selected="true" text="Использовать стандартные настройки" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
+            <font>
+                <Font size="14.0" />
+            </font>
+        </CheckBox>
+        <AnchorPane fx:id="ap_settings" layoutX="10.0" layoutY="30.0" prefHeight="160.0" prefWidth="480.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0" AnchorPane.topAnchor="35.0">
+            <children>
+                <Label layoutX="14.0" layoutY="14.0" prefHeight="25.0" prefWidth="90.0" text="Путь файла:" AnchorPane.leftAnchor="20.0" AnchorPane.topAnchor="10.0" />
+                <HBox alignment="CENTER_LEFT" layoutX="20.0" layoutY="31.0" prefHeight="31.0" prefWidth="421.0" spacing="5.0" AnchorPane.leftAnchor="20.0" AnchorPane.rightAnchor="20.0" AnchorPane.topAnchor="35.0">
+                    <children>
+                        <TextField fx:id="tf_pathOfFile" editable="false" focusTraversable="false" layoutX="14.0" layoutY="43.0" prefHeight="31.0" prefWidth="280.0" />
+                        <Button fx:id="btn_choosePath" focusTraversable="false" layoutX="219.0" layoutY="43.0" mnemonicParsing="false" onMouseClicked="#choosePath" prefHeight="31.0" prefWidth="115.0" text="Указать путь" />
+                    </children>
+                </HBox>
+                <TextField fx:id="tf_nameOfFile" focusTraversable="false" layoutX="20.0" layoutY="99.0" prefHeight="31.0" prefWidth="200.0" />
+                <Label layoutX="20.0" layoutY="74.0" prefHeight="25.0" prefWidth="90.0" text="Имя файла:" />
+                <Label fx:id="lb_wrongMessage" alignment="CENTER" layoutX="20.0" layoutY="136.0" prefHeight="21.0" prefWidth="200.0" textFill="RED" />
+            <Button fx:id="btn_generateRandomName" layoutX="225.0" layoutY="99.0" mnemonicParsing="false" onMouseClicked="#generateRandomName" text="Случайное имя" />
+            </children>
+        </AnchorPane>
+        <HBox alignment="CENTER" layoutX="10.0" layoutY="199.0" prefHeight="65.0" prefWidth="450.0" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
+            <children>
+                <VBox alignment="CENTER">
+                    <children>
+                        <Label alignment="CENTER" layoutX="10.0" layoutY="182.0" prefHeight="21.0" prefWidth="90.0" text="Пароль:" AnchorPane.leftAnchor="10.0" />
+                        <PasswordField fx:id="pf_password" alignment="CENTER" focusTraversable="false" layoutX="14.0" layoutY="203.0" prefHeight="31.0" prefWidth="200.0" AnchorPane.leftAnchor="10.0" />
+                    </children>
+                </VBox>
+            </children>
+        </HBox>
+        <Button fx:id="btn_accept" defaultButton="true" layoutX="436.0" layoutY="234.0" mnemonicParsing="false" onMouseClicked="#createStorage" prefHeight="31.0" prefWidth="70.0" text="Готово" AnchorPane.bottomAnchor="10.0" AnchorPane.rightAnchor="10.0" />
+        <Button fx:id="btn_back" layoutX="10.0" layoutY="241.0" mnemonicParsing="false" onMouseClicked="#close" prefHeight="31.0" prefWidth="70.0" text="Назад" AnchorPane.bottomAnchor="10.0" AnchorPane.leftAnchor="10.0" />
+    </children>
+</AnchorPane>

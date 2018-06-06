@@ -1,0 +1,25 @@
+#buttonImg:pressed {
+	-fx-scale-x: 0.94;
+	-fx-scale-y: 0.94;
+}
+
+.homeVBox > .blockField {
+	-fx-border-width: 2px;
+	-fx-border-color: transparent transparent derive( silver, 50%) transparent;
+}
+
+.homeVBox > .blockField .password-field:not-safe, .text-field:not-safe{
+	-fx-border-color: red;
+	-fx-border-radius: 4px;
+	-fx-border-width: 1.3px;
+}
+
+.homeVBox > .blockField .password-field:safe, .text-field:safe{
+	-fx-border-color: green;
+	-fx-border-radius: 4px;
+	-fx-border-width: 1.3px;
+}
+
+.text-input:empty{
+	-fx-background-color: #F72543;
+}
