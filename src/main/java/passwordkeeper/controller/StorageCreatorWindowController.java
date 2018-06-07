@@ -25,6 +25,7 @@ import static passwordkeeper.PasswordKeeper.NAME_PROGRAM;
  */
 public class StorageCreatorWindowController implements Initializable {
 
+
     @FXML
     private AnchorPane ap_settings;
 
@@ -97,12 +98,12 @@ public class StorageCreatorWindowController implements Initializable {
 
     @FXML
     public void createStorage(MouseEvent event) throws IOException {
-        File defaultDir = new File("src/main/java/passwordkeeper/programFiles/");
-        String nameOfFile = tf_nameOfFile.getText();
         if (cb_useDefault.isSelected()) {
-            controller.addToListOfKeepers(KeeperOfStorage.newStorage(defaultDir, nameOfFile, pf_password.getText()));
+            File defaultDir = new File("src/main/java/passwordkeeper/programFiles/");
+            controller.addToListOfKeepers(KeeperOfStorage.newStorage(defaultDir, generateRandomName(), pf_password.getText()));
         } else {
             if (tempPath != null) {
+                String nameOfFile = tf_nameOfFile.getText();
                 controller.addToListOfKeepers(KeeperOfStorage.newStorage(tempPath, nameOfFile, pf_password.getText()));
             }
         }
@@ -127,10 +128,13 @@ public class StorageCreatorWindowController implements Initializable {
         }
     }
 
-    @FXML
-    private void generateRandomName() {
+    public void setGenerateRandomName() {
+        tf_nameOfFile.setText(generateRandomName());
+    }
+
+    private String generateRandomName() {
         Random random = new Random();
-        tf_nameOfFile.setText("Storage" + (random.nextInt(999) + 1));
+        return "Storage" + (random.nextInt(999) + 1);
     }
 
     public void setStorageSelectionWindowController(StorageSelectionWindowController controller) {

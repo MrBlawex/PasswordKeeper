@@ -1,12 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import javafx.scene.text.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<?import java.net.URL?>
-
 <AnchorPane prefHeight="300.0" prefWidth="470.0" stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="passwordkeeper.controller.StorageCreatorWindowController">
     <children>
         <CheckBox fx:id="cb_useDefault" focusTraversable="false" layoutX="14.0" layoutY="14.0" mnemonicParsing="false" prefHeight="20.0" prefWidth="275.0" selected="true" text="Использовать стандартные настройки" AnchorPane.leftAnchor="10.0" AnchorPane.topAnchor="10.0">
@@ -26,7 +22,8 @@
                 <TextField fx:id="tf_nameOfFile" focusTraversable="false" layoutX="20.0" layoutY="99.0" prefHeight="31.0" prefWidth="200.0" />
                 <Label layoutX="20.0" layoutY="74.0" prefHeight="25.0" prefWidth="90.0" text="Имя файла:" />
                 <Label fx:id="lb_wrongMessage" alignment="CENTER" layoutX="20.0" layoutY="136.0" prefHeight="21.0" prefWidth="200.0" textFill="RED" />
-            <Button fx:id="btn_generateRandomName" layoutX="225.0" layoutY="99.0" mnemonicParsing="false" onMouseClicked="#generateRandomName" text="Случайное имя" />
+                <Button fx:id="btn_generateRandomName" layoutX="225.0" layoutY="99.0" mnemonicParsing="false"
+                        onMouseClicked="#setGenerateRandomName" text="Случайное имя"/>
             </children>
         </AnchorPane>
         <HBox alignment="CENTER" layoutX="10.0" layoutY="199.0" prefHeight="65.0" prefWidth="450.0" AnchorPane.bottomAnchor="45.0" AnchorPane.leftAnchor="10.0" AnchorPane.rightAnchor="10.0">
