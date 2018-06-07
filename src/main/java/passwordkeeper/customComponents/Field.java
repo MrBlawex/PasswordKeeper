@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -32,12 +33,15 @@ import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
 import static passwordkeeper.PasswordKeeper.NAME_PROGRAM;
 
+@SuppressWarnings("ALL")
 public class Field extends AnchorPane implements SampleField, KryoSerializable, Initializable {
 
     @FXML
@@ -79,10 +83,9 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
     public Field() {
         nameProperty = new SimpleStringProperty("");
         textProperty = new SimpleStringProperty("");
-        isShowing = new SimpleBooleanProperty();
+        isShowing = new SimpleBooleanProperty(false);
 
-        history = new ArrayList<>();
-        makeSnapshot();
+        Platform.runLater(() -> initializeHistory());
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Field.fxml"));
         loader.setRoot(this);
@@ -95,13 +98,14 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         }
     }
 
-    public Field(String name) {
+    public Field(String name, String text, Boolean difficultVersion) {
         nameProperty = new SimpleStringProperty(name);
-        textProperty = new SimpleStringProperty("");
+        textProperty = new SimpleStringProperty(text);
         isShowing = new SimpleBooleanProperty(false);
 
-        history = new ArrayList<>();
-        makeSnapshot();
+        if (difficultVersion) {
+            Platform.runLater(() -> initializeHistory());
+        }
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Field.fxml"));
         loader.setRoot(this);
@@ -119,8 +123,7 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         textProperty = new SimpleStringProperty(field.textProperty.get());
         isShowing = new SimpleBooleanProperty(field.isShowing.get());
 
-        history = new ArrayList<>();
-        makeSnapshot();
+        Platform.runLater(() -> initializeHistory());
 
         FXMLLoader loader = new FXMLLoader(getClass().getResource("Field.fxml"));
         loader.setRoot(this);
@@ -139,6 +142,8 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         importImage();
         tuningImageView();
         initializePane();
+        initializeGraphics();
+        initializeControl();
     }
 
     private void importImage() {
@@ -155,11 +160,11 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         imageViewCopy = new ImageView();
         imageViewSee = new ImageView();
 
-        imageViewCopy.setFitHeight(22);
-        imageViewCopy.setFitWidth(22);
+        imageViewCopy.setFitHeight(24);
+        imageViewCopy.setFitWidth(24);
 
-        imageViewSee.setFitHeight(22);
-        imageViewSee.setFitWidth(22);
+        imageViewSee.setFitHeight(24);
+        imageViewSee.setFitWidth(24);
 
         imageViewCopy.setImage(imageCopy);
         imageViewSee.setImage(imageEye);
@@ -168,6 +173,7 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
     private void initializePane() {
         label.textProperty().bindBidirectional(nameProperty);
         textField.textProperty().bindBidirectional(textProperty);
+        passwordField.textProperty().bindBidirectional(textProperty);
         visibleText.selectedProperty().bindBidirectional(isShowing);
 
         textField.setManaged(false);
@@ -179,8 +185,6 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         passwordField.managedProperty().bind(isShowing);
         passwordField.visibleProperty().bind(isShowing);
 
-        textField.textProperty().bindBidirectional(passwordField.textProperty());
-
         copyToBuff.setOnMouseClicked((event) -> {
             if (event.getButton() == MouseButton.PRIMARY && !textField.getText().isEmpty()) {
                 Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
@@ -188,61 +192,17 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
                 clipboard.setContents(stringSelection, null);
             }
         });
-
-        initializeGraphics();
-        initializeControl();
     }
 
     private void initializeGraphics() {
-        PseudoClass pseudoClassNotSafe = PseudoClass.getPseudoClass("not-safe");
-        PseudoClass pseudoClassSafe = PseudoClass.getPseudoClass("safe");
-        Tooltip tooltipSafe = new Tooltip("Изменения сохранены");
-        Tooltip tooltipNotSafe = new Tooltip("Изменения не сохранены");
-
-        tooltipSafe.setContentDisplay(ContentDisplay.CENTER);
-        tooltipNotSafe.setContentDisplay(ContentDisplay.CENTER);
-
-        textField.pseudoClassStateChanged(pseudoClassSafe, textProperty.get().equals(history.get(history.size() - 1).text));
-        passwordField.pseudoClassStateChanged(pseudoClassSafe, textProperty.get().equals(history.get(history.size() - 1).text));
-
-
-
-        textField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                makeSnapshot();
-                textField.pseudoClassStateChanged(pseudoClassSafe, true);
-                passwordField.pseudoClassStateChanged(pseudoClassSafe, true);
-                textField.setTooltip(tooltipSafe);
-                passwordField.setTooltip(tooltipSafe);
-            }
-        });
-
-        passwordField.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER) {
-                makeSnapshot();
-                textField.pseudoClassStateChanged(pseudoClassSafe, true);
-                passwordField.pseudoClassStateChanged(pseudoClassSafe, true);
-                textField.setTooltip(tooltipSafe);
-                passwordField.setTooltip(tooltipSafe);
-            }
-        });
-
-        passwordField.textProperty().addListener((observable, oldValue, newValue) -> {
-            if (newValue.equals(history.get(history.size() - 1).text)) {
-                textField.setTooltip(tooltipSafe);
-                passwordField.setTooltip(tooltipSafe);
-            }else {
-                textField.setTooltip(tooltipNotSafe);
-                passwordField.setTooltip(tooltipNotSafe);
-            }
-            textField.pseudoClassStateChanged(pseudoClassSafe, newValue.equals(history.get(history.size() - 1).text));
-            passwordField.pseudoClassStateChanged(pseudoClassSafe, newValue.equals(history.get(history.size() - 1).text));
-
-            textField.pseudoClassStateChanged(pseudoClassNotSafe, !newValue.equals(history.get(history.size() - 1).text));
-            passwordField.pseudoClassStateChanged(pseudoClassNotSafe, !newValue.equals(history.get(history.size() - 1).text));
-        });
-
         copyToBuff.setGraphic(imageViewCopy);
+        visibleText.setGraphic(imageViewSee);
+
+        if (isShowing.getValue()) {
+            showMask();
+        } else {
+            hideMask();
+        }
 
         label.widthProperty().addListener((observable, oldValue, newValue) -> {
             AnchorPane.setRightAnchor(fields_box, btn_box.getPrefWidth() + 36);
@@ -271,7 +231,6 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
             dialog.setContentText("Введите текст: ");
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(s -> label.setText(s));
-            makeSnapshot();
         });
 
         ContextMenu menu = new ContextMenu(itemRenameLB);
@@ -283,6 +242,58 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         });
     }
 
+    private void initializeHistory() {
+        history = new ArrayList<>();
+        makeSnapshot();
+
+        PseudoClass pseudoClassNotSafe = PseudoClass.getPseudoClass("not-safe");
+        PseudoClass pseudoClassSafe = PseudoClass.getPseudoClass("safe");
+        Tooltip tooltipSafe = new Tooltip("Изменения сохранены");
+        Tooltip tooltipNotSafe = new Tooltip("Изменения не сохранены");
+
+        tooltipSafe.setContentDisplay(ContentDisplay.CENTER);
+        tooltipNotSafe.setContentDisplay(ContentDisplay.CENTER);
+
+        textField.pseudoClassStateChanged(pseudoClassSafe, textProperty.get().equals(history.get(history.size() - 1).text));
+        passwordField.pseudoClassStateChanged(pseudoClassSafe, textProperty.get().equals(history.get(history.size() - 1).text));
+
+
+        textField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                makeSnapshot();
+                textField.pseudoClassStateChanged(pseudoClassSafe, true);
+                passwordField.pseudoClassStateChanged(pseudoClassSafe, true);
+                textField.setTooltip(tooltipSafe);
+                passwordField.setTooltip(tooltipSafe);
+            }
+        });
+
+        passwordField.setOnKeyPressed(event -> {
+            if (event.getCode() == KeyCode.ENTER) {
+                makeSnapshot();
+                textField.pseudoClassStateChanged(pseudoClassSafe, true);
+                passwordField.pseudoClassStateChanged(pseudoClassSafe, true);
+                textField.setTooltip(tooltipSafe);
+                passwordField.setTooltip(tooltipSafe);
+            }
+        });
+
+        textProperty.addListener((observable, oldValue, newValue) -> {
+            if (newValue.equals(history.get(history.size() - 1).text)) {
+                textField.setTooltip(tooltipSafe);
+                passwordField.setTooltip(tooltipSafe);
+            } else {
+                textField.setTooltip(tooltipNotSafe);
+                passwordField.setTooltip(tooltipNotSafe);
+            }
+            textField.pseudoClassStateChanged(pseudoClassSafe, newValue.equals(history.get(history.size() - 1).text));
+            passwordField.pseudoClassStateChanged(pseudoClassSafe, newValue.equals(history.get(history.size() - 1).text));
+
+            textField.pseudoClassStateChanged(pseudoClassNotSafe, !newValue.equals(history.get(history.size() - 1).text));
+            passwordField.pseudoClassStateChanged(pseudoClassNotSafe, !newValue.equals(history.get(history.size() - 1).text));
+        });
+    }
+
     private void hideMask() {
         imageViewSee.setImage(imageEye);
     }
@@ -290,7 +301,6 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
     private void showMask() {
         imageViewSee.setImage(imageEyeClosed);
     }
-
 
     @Override
     public void write(Kryo kryo, Output output) {
@@ -303,7 +313,7 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
     public void read(Kryo kryo, Input input) {
         nameProperty.setValue(input.readString());
         isShowing.set(input.readBoolean());
-        history = new ArrayList<>((ArrayList<Snapshot>) kryo.readClassAndObject(input));
+        history = (ArrayList<Snapshot>) kryo.readClassAndObject(input);
         restoreLastSnapshot();
     }
 
@@ -319,12 +329,37 @@ public class Field extends AnchorPane implements SampleField, KryoSerializable, 
         history.add(new Snapshot(textProperty.get()));
     }
 
-    private class Snapshot {
+    private static class Snapshot implements KryoSerializable {
 
         private String text;
+        private Date date;
+
+        Snapshot() {
+        }
 
         Snapshot(String text) {
             this.text = text;
+            this.date = new Date();
+        }
+
+        public String getText() {
+            return text;
+        }
+
+        public String getDate() {
+            return new SimpleDateFormat().format(date);
+        }
+
+        @Override
+        public void write(Kryo kryo, Output output) {
+            output.writeString(text);
+            kryo.writeClassAndObject(output, date);
+        }
+
+        @Override
+        public void read(Kryo kryo, Input input) {
+            text = input.readString();
+            date = (Date) kryo.readClassAndObject(input);
         }
     }
 }
