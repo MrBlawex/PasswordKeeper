@@ -10,6 +10,7 @@ import javafx.scene.control.TreeItem;
 
 import java.util.ArrayList;
 
+
 public class FolderOfStorage extends Item implements KryoSerializable {
 
     private ArrayList<Item> items;
@@ -18,22 +19,22 @@ public class FolderOfStorage extends Item implements KryoSerializable {
     public FolderOfStorage() {
     }
 
-    public FolderOfStorage(String name, Boolean safeMode) {
-        super(name, safeMode);
+    FolderOfStorage(String name) {
+        super(name);
         items = new ArrayList<>();
         isExpanded = new SimpleBooleanProperty(true);
     }
 
-    public Boolean addNewFolder(String name, Boolean safeMode) {
-        return items.add(new FolderOfStorage(name, safeMode));
+    public Boolean addNewFolder(String name) {
+        return items.add(new FolderOfStorage(name));
     }
 
     public Boolean addNewFile(String name, Boolean safeMode) {
         return items.add(new FileOfStorage(name, safeMode));
     }
 
-    public Boolean removeChild(Item item) {
-        if (!safeMode) {
+    public Boolean removeChild(Item item, Storage storage) {
+        if (!storage.getSafeMode()) {
             return items.remove(item);
         } else {
             throw new Error("Включён режим безопасности");
