@@ -137,7 +137,7 @@ public class StorageCreatorWindowController implements Initializable {
         return "Storage" + (random.nextInt(999) + 1);
     }
 
-    public void setStorageSelectionWindowController(StorageSelectionWindowController controller) {
+    void setStorageSelectionWindowController(StorageSelectionWindowController controller) {
         this.controller = controller;
     }
 }

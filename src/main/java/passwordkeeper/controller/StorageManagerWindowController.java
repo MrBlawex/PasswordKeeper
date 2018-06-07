@@ -88,11 +88,12 @@ public class StorageManagerWindowController implements Initializable {
     public void saveChanges() {
         try {
             KeeperOfStorage.saveStorage(keeperOfStorage);
-        } catch (IOException ex) {
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
-    public void setToTreeView(TreeItem<Item> root) {
+    private void setToTreeView(TreeItem<Item> root) {
         treeView.setRoot(root);
     }
 
@@ -105,7 +106,7 @@ public class StorageManagerWindowController implements Initializable {
      *
      * @param keeperOfStorage
      */
-    public void setKeeperOfStorage(KeeperOfStorage keeperOfStorage) {
+    void setKeeperOfStorage(KeeperOfStorage keeperOfStorage) {
         this.keeperOfStorage = keeperOfStorage;
     }
 
@@ -114,7 +115,7 @@ public class StorageManagerWindowController implements Initializable {
      *
      * @param storageSelectionWindow
      */
-    public void setStorageSelectionWindow(Window storageSelectionWindow) {
+    void setStorageSelectionWindow(Window storageSelectionWindow) {
         this.storageSelectionWindow = storageSelectionWindow;
     }
 
@@ -123,7 +124,7 @@ public class StorageManagerWindowController implements Initializable {
      *
      * @param thisWindow
      */
-    public void setThisWindow(Window thisWindow) {
+    void setThisWindow(Window thisWindow) {
         this.thisWindow = thisWindow;
     }
 
@@ -151,12 +152,13 @@ public class StorageManagerWindowController implements Initializable {
                 //ex.printStackTrace();
             }
         });
+
         treeView.setOnMouseClicked((event) -> {
             Item tempItem = null;
             try {
                 tempItem = treeView.getSelectionModel().getSelectedItem().getValue();
             } catch (Exception ex) {
-                //ex.printStackTrace();
+
             }
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 1) {
                 if (tempItem instanceof FileOfStorage) {
@@ -189,7 +191,7 @@ public class StorageManagerWindowController implements Initializable {
             if (result.isPresent()) {
                 Item temp = treeView.getSelectionModel().getSelectedItem().getValue();
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
-                tempFolderOfStorage.addNewFolder(result.get(), Boolean.TRUE);
+                tempFolderOfStorage.addNewFolder(result.get());
             }
             refreshTreeView();
         });
@@ -223,7 +225,7 @@ public class StorageManagerWindowController implements Initializable {
             if (result.isPresent()) {
                 Item temp = treeView.getSelectionModel().getSelectedItem().getValue();
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
-                tempFolderOfStorage.addNewFolder(result.get(), Boolean.TRUE);
+                tempFolderOfStorage.addNewFolder(result.get());
             }
             refreshTreeView();
         });
@@ -252,9 +254,7 @@ public class StorageManagerWindowController implements Initializable {
             dialog.setGraphic(null);
             dialog.setContentText("Введите название: ");
             Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()) {
-                treeView.getSelectionModel().getSelectedItem().getValue().renameItem(result.get());
-            }
+            result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
             refreshTreeView();
         });
 
@@ -264,7 +264,7 @@ public class StorageManagerWindowController implements Initializable {
         delete.setOnAction((event) -> {
             FolderOfStorage parentFolderOfStorage = (FolderOfStorage) treeView.getSelectionModel().getSelectedItem().getParent().getValue();
             try {
-                parentFolderOfStorage.removeChild(treeView.getSelectionModel().getSelectedItem().getValue());
+                parentFolderOfStorage.removeChild(treeView.getSelectionModel().getSelectedItem().getValue(), keeperOfStorage.getStorage());
             } catch (Error ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(NAME_PROGRAM + " - " + "Ошибка");
@@ -318,9 +318,7 @@ public class StorageManagerWindowController implements Initializable {
             dialog.setGraphic(null);
             dialog.setContentText("Введите название: ");
             Optional<String> result = dialog.showAndWait();
-            if (result.isPresent()) {
-                treeView.getSelectionModel().getSelectedItem().getValue().renameItem(result.get());
-            }
+            result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
             refreshTreeView();
         });
 
@@ -330,7 +328,7 @@ public class StorageManagerWindowController implements Initializable {
         delete.setOnAction((event) -> {
             FolderOfStorage parentFolderOfStorage = (FolderOfStorage) treeView.getSelectionModel().getSelectedItem().getParent().getValue();
             try {
-                parentFolderOfStorage.removeChild(treeView.getSelectionModel().getSelectedItem().getValue());
+                parentFolderOfStorage.removeChild(treeView.getSelectionModel().getSelectedItem().getValue(), keeperOfStorage.getStorage());
             } catch (Error ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(NAME_PROGRAM + " - " + "Ошибка");
@@ -360,7 +358,7 @@ public class StorageManagerWindowController implements Initializable {
             stage.initOwner(menuBar.getScene().getWindow());
             stage.initModality(Modality.NONE);
 
-            stage.setTitle(NAME_PROGRAM + " - " + "Генератор");
+            stage.setTitle(NAME_PROGRAM + " - " + "Генератор паролей");
 
             stage.setScene(scene);
             stage.show();
