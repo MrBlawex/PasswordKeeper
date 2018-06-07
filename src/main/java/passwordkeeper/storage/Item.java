@@ -15,15 +15,13 @@ import java.util.Objects;
  */
 public abstract class Item {
 
-    protected String name;
-    protected Boolean safeMode;
+    String name;
 
-    public Item() {
+    Item() {
     }
 
-    public Item(String name, Boolean safeMode) {
+    Item(String name) {
         this.name = name;
-        this.safeMode = safeMode;
     }
 
     public void renameItem(String name) {
@@ -36,7 +34,7 @@ public abstract class Item {
 
     public abstract TreeItem<Item> getTreeItem();
 
-    protected ImageView getIconFile() {
+    ImageView getIconFile() {
         InputStream inputStreamFile = PasswordKeeper.class.getResourceAsStream("fxml/icons/file.png");
         Image imageFile = new Image(inputStreamFile);
         ImageView t = new ImageView(imageFile);
@@ -45,7 +43,7 @@ public abstract class Item {
         return t;
     }
 
-    protected ImageView getIconFolder() {
+    ImageView getIconFolder() {
         InputStream inputStreamFolder = PasswordKeeper.class.getResourceAsStream("fxml/icons/folder.png");
         Image imageFolder = new Image(inputStreamFolder);
         ImageView t = new ImageView(imageFolder);
@@ -64,7 +62,6 @@ public abstract class Item {
         if (this == o) return true;
         if (!(o instanceof Item)) return false;
         Item item = (Item) o;
-        return Objects.equals(name, item.name) &&
-                Objects.equals(safeMode, item.safeMode);
+        return Objects.equals(name, item.name);
     }
 }
