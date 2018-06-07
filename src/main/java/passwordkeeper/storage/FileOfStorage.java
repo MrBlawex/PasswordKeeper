@@ -22,7 +22,7 @@ public class FileOfStorage extends Item implements KryoSerializable {
     }
 
     public FileOfStorage(String name, Boolean safeMode) {
-        super(name, safeMode);
+        super(name);
         fields = new ArrayList<>();
     }
 
