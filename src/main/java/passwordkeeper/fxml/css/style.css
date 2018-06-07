@@ -21,5 +21,7 @@
 }
 
 .text-input:empty{
-	-fx-background-color: #F72543;
+    -fx-border-color: red;
+	-fx-border-radius: 4px;
+	-fx-border-width: 2px;
 }
