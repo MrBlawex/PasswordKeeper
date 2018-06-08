@@ -42,8 +42,8 @@ public class FieldChooserWindowController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         list = lv_fields.getItems();
 
-        list.add(new FieldWrapper("Простое поле", new Field("Test")));
-        list.add(new FieldWrapper("Комбинированное поле", new ComboField("Test1", "Test2")));
+        list.add(new FieldWrapper("Простое поле", new Field("Test", "", false)));
+        list.add(new FieldWrapper("Комбинированное поле", new ComboField("Test1", "", "Test2", "", false)));
 
         initializePane();
     }
@@ -73,7 +73,7 @@ public class FieldChooserWindowController implements Initializable {
             Node tempNode = vbox_previewer.getChildren().get(0);
 
             if (tempNode instanceof Field) {
-                fileOfStorage.addField(new Field());
+                fileOfStorage.addField(new Field("newField", "", true));
             }
             if (tempNode instanceof ComboField) {
                 fileOfStorage.addField(new ComboField());
@@ -83,7 +83,7 @@ public class FieldChooserWindowController implements Initializable {
         ((Node) mouseEvent.getSource()).getScene().getWindow().hide();
     }
 
-    public void setFileOfStorage(FileOfStorage fileOfStorage) {
+    void setFileOfStorage(FileOfStorage fileOfStorage) {
         this.fileOfStorage = fileOfStorage;
     }
 
@@ -92,7 +92,7 @@ public class FieldChooserWindowController implements Initializable {
         private String nameField;
         private SampleField sampleField;
 
-        public FieldWrapper(String nameField, SampleField sampleField) {
+        FieldWrapper(String nameField, SampleField sampleField) {
             this.nameField = nameField;
             this.sampleField = sampleField;
         }
@@ -101,7 +101,7 @@ public class FieldChooserWindowController implements Initializable {
             return sampleField;
         }
 
-        public Node getFieldNode() {
+        Node getFieldNode() {
             if (sampleField instanceof Field) return (Field) sampleField;
             if (sampleField instanceof ComboField) return (ComboField) sampleField;
             return null;
