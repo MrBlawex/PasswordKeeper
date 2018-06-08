@@ -22,7 +22,6 @@ import passwordkeeper.storage.KeeperOfStorage;
 import java.io.*;
 import java.net.URL;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -31,7 +30,14 @@ import static passwordkeeper.PasswordKeeper.NAME_PROGRAM;
 public class StorageSelectionWindowController implements Initializable {
 
     @FXML
+    public Button btn_createStorage;
+
+    @FXML
+    public Button btn_importStorage;
+
+    @FXML
     private ListView<KeeperOfStorage> lv_storages;
+
     private ObservableList<KeeperOfStorage> list = FXCollections.observableArrayList();
 
     @FXML
@@ -55,7 +61,7 @@ public class StorageSelectionWindowController implements Initializable {
 
             stage.setTitle(NAME_PROGRAM + " - " + "Создать хранилище");
 
-            stage.initOwner(((Node)event.getSource()).getScene().getWindow());
+            stage.initOwner(((Node) event.getSource()).getScene().getWindow());
             stage.initModality(Modality.WINDOW_MODAL);
 
             stage.setScene(scene);
@@ -92,16 +98,14 @@ public class StorageSelectionWindowController implements Initializable {
         }
     }
 
-    public void addToListOfKeepers(KeeperOfStorage keeper) {
+    void addToListOfKeepers(KeeperOfStorage keeper) {
         list.add(keeper);
     }
 
     private void initialize() {
         ContextMenu cm = new ContextMenu();
         MenuItem remove = new MenuItem("Удалить");
-        remove.setOnAction((event) -> {
-            list.remove(lv_storages.getSelectionModel().getSelectedItem());
-        });
+        remove.setOnAction((event) -> list.remove(lv_storages.getSelectionModel().getSelectedItem()));
         cm.getItems().add(remove);
         lv_storages.setContextMenu(cm);
 
@@ -127,7 +131,7 @@ public class StorageSelectionWindowController implements Initializable {
                     stage.setScene(scene);
                     stage.showAndWait();
                 } catch (IOException ex) {
-
+                    ex.printStackTrace();
                 }
             }
         });
@@ -157,7 +161,7 @@ public class StorageSelectionWindowController implements Initializable {
         try {
             Kryo kryo = new Kryo();
             Input input = new Input(new FileInputStream(new File("src/main/java/passwordkeeper/programFiles/list.kryo")));
-            list = FXCollections.observableArrayList((Collection<? extends KeeperOfStorage>) kryo.readClassAndObject(input));
+            list = (ObservableList<KeeperOfStorage>) kryo.readClassAndObject(input);
             input.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -187,9 +191,8 @@ public class StorageSelectionWindowController implements Initializable {
             alert.getButtonTypes().addAll(buttonTypeOne, buttonTypeTwo);
 
             Optional<ButtonType> result = alert.showAndWait();
-            if (result.get() == buttonTypeOne) {
-                list.removeAll(listForRemove);
-            }
+
+            result.ifPresent(buttonType -> list.removeAll(listForRemove));
 
             alert.showAndWait();
         }
