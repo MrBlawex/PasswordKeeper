@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+
+<?import javafx.scene.control.CheckBox?>
+<?import javafx.scene.layout.AnchorPane?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" prefHeight="266.0" prefWidth="435.0" xmlns="http://javafx.com/javafx/8"
+            fx:controller="passwordkeeper.controller.SettingsManagerWindowController">
+    <CheckBox layoutX="26.0" layoutY="25.0" mnemonicParsing="false" text="Защитить файлы и папки от удалиения"/>
+</AnchorPane>
