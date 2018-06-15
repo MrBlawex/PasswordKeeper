@@ -18,7 +18,7 @@ public class Storage implements KryoSerializable {
     }
 
     Storage(String passwordOfStorage) {
-        this.rootFolder = new FolderOfStorage("Хранилище");
+        this.rootFolder = new FolderOfStorage("Storage");
         this.passwordOfStorage = passwordOfStorage;
     }
 
