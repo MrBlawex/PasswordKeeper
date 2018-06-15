@@ -1,29 +1,43 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <?import javafx.scene.text.Font?>
-<fx:root xmlns:fx="http://javafx.com/fxml/1" prefHeight="45.0" prefWidth="480.0" styleClass="blockField"
-         stylesheets="@../fxml/css/style.css" type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8">
+<fx:root xmlns:fx="http://javafx.com/fxml/1" minHeight="-Infinity" prefHeight="50.0" prefWidth="480.0"
+         styleClass="blockField" stylesheets="@../fxml/css/style.css" type="javafx.scene.layout.AnchorPane"
+         xmlns="http://javafx.com/javafx/8.0.171">
     <Label fx:id="label" alignment="CENTER" layoutX="14.0" layoutY="9.0" maxWidth="200.0" minWidth="70.0"
            prefHeight="27.0" AnchorPane.bottomAnchor="9.0" AnchorPane.leftAnchor="6.0" AnchorPane.topAnchor="9.0">
         <font>
             <Font size="16.0"/>
         </font>
     </Label>
-    <AnchorPane fx:id="fields_box" layoutX="147.0" layoutY="7.0" prefHeight="32.0" prefWidth="94.0"
-                AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="85.0" AnchorPane.topAnchor="6.0">
-        <TextField fx:id="textField" focusTraversable="false" AnchorPane.bottomAnchor="0.0"
-                   AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    <AnchorPane fx:id="fields_box" layoutX="228.0" layoutY="6.0" maxHeight="-Infinity" minHeight="-Infinity"
+                prefHeight="34.0" prefWidth="300.0" AnchorPane.bottomAnchor="8.0" AnchorPane.rightAnchor="80.0"
+                AnchorPane.topAnchor="8.0">
+        <TextField fx:id="textField" focusTraversable="false" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                   AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
         <PasswordField fx:id="passwordField" focusTraversable="false" AnchorPane.bottomAnchor="0.0"
                        AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
     </AnchorPane>
-    <HBox fx:id="btn_box" layoutX="426.0" layoutY="4.0" prefHeight="35.0" prefWidth="70.0" spacing="6.0"
-          AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="6.0" AnchorPane.topAnchor="6.0">
+    <HBox fx:id="btn_box" alignment="CENTER_RIGHT" layoutX="426.0" layoutY="4.0" maxHeight="-Infinity"
+          maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="33.0" prefWidth="70.0"
+          spacing="6.0" AnchorPane.bottomAnchor="6.0" AnchorPane.rightAnchor="6.0" AnchorPane.topAnchor="6.0">
         <ToggleButton id="buttonImg" fx:id="visibleText" focusTraversable="false" layoutX="426.0" layoutY="4.0"
-                      mnemonicParsing="false" prefHeight="32.0" prefWidth="32.0"/>
+                      maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
+                      mnemonicParsing="false" prefHeight="32.0" prefWidth="32.0">
+            <graphic>
+                <MaterialDesignIconView glyphName="EYE" size="22"/>
+            </graphic>
+        </ToggleButton>
         <Button id="buttonImg" fx:id="copyToBuff" focusTraversable="false" layoutX="466.0" layoutY="4.0"
+                maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity"
                 mnemonicParsing="false" prefHeight="32.0" prefWidth="32.0" AnchorPane.bottomAnchor="4.0"
-                AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0"/>
+                AnchorPane.rightAnchor="4.0" AnchorPane.topAnchor="4.0">
+            <graphic>
+                <MaterialDesignIconView glyphName="CONTENT_COPY" size="22"/>
+            </graphic>
+        </Button>
     </HBox>
 </fx:root>
