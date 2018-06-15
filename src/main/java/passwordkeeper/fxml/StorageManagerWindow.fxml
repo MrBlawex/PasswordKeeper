@@ -5,17 +5,12 @@
 <?import javafx.scene.input.KeyCodeCombination?>
 <?import javafx.scene.layout.*?>
 <AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="ach_window" prefHeight="535.0" prefWidth="800.0"
-            stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8"
+            stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8.0.171"
             fx:controller="passwordkeeper.controller.StorageManagerWindowController">
-    <MenuBar fx:id="menuBar" prefHeight="35.0" AnchorPane.leftAnchor="0.0"
-             AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+    <MenuBar fx:id="menuBar" prefHeight="35.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+             AnchorPane.topAnchor="0.0">
         <Menu mnemonicParsing="false" text="Файл">
             <MenuItem mnemonicParsing="false" text="Сохранить в txt"/>
-            <MenuItem mnemonicParsing="false" onAction="#saveChanges" text="Сохранить изменения">
-                <accelerator>
-                    <KeyCodeCombination alt="UP" code="S" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
-                </accelerator>
-            </MenuItem>
             <SeparatorMenuItem mnemonicParsing="false"/>
             <MenuItem mnemonicParsing="false" onAction="#showGenerator" text="Генератор паролей"/>
             <SeparatorMenuItem mnemonicParsing="false"/>
@@ -35,16 +30,17 @@
             <MenuItem mnemonicParsing="false" text="О программе"/>
         </Menu>
     </MenuBar>
-    <ScrollPane fx:id="scrollPane" hbarPolicy="NEVER" prefHeight="505.0"
-                prefViewportHeight="450.0" prefViewportWidth="400.0" prefWidth="530.0" vbarPolicy="ALWAYS"
-                AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="40.0">
-        <VBox fx:id="mainView" alignment="TOP_CENTER" prefHeight="485.0" prefWidth="530.0" styleClass="homeVBox"
-              AnchorPane.bottomAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+    <ScrollPane fx:id="scrollPane" hbarPolicy="NEVER" prefHeight="505.0" prefViewportHeight="450.0"
+                prefViewportWidth="400.0" prefWidth="530.0" vbarPolicy="ALWAYS" AnchorPane.bottomAnchor="5.0"
+                AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="40.0">
+        <content>
+            <VBox prefHeight="35.0" prefWidth="510.0"/>
+        </content>
     </ScrollPane>
     <AnchorPane fx:id="ach_leftBar" layoutX="5.0" layoutY="40.0" prefHeight="500.0" prefWidth="265.0"
                 AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="35.0">
-        <AnchorPane disable="true" layoutX="5.0" layoutY="5.0" AnchorPane.leftAnchor="0.0"
-                    AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+        <AnchorPane disable="true" layoutX="5.0" layoutY="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
             <Button fx:id="search_btn" focusTraversable="false" layoutX="180.0" mnemonicParsing="false"
                     prefHeight="31.0" prefWidth="75.0" text="Поиск" AnchorPane.rightAnchor="5.0"
                     AnchorPane.topAnchor="5.0"/>
