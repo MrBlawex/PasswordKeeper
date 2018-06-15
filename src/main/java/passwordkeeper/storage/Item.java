@@ -1,11 +1,9 @@
 package passwordkeeper.storage;
 
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import javafx.scene.control.TreeItem;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
-import passwordkeeper.PasswordKeeper;
 
-import java.io.InputStream;
 import java.util.Objects;
 
 /**
@@ -34,22 +32,12 @@ public abstract class Item {
 
     public abstract TreeItem<Item> getTreeItem();
 
-    ImageView getIconFile() {
-        InputStream inputStreamFile = PasswordKeeper.class.getResourceAsStream("fxml/icons/file.png");
-        Image imageFile = new Image(inputStreamFile);
-        ImageView t = new ImageView(imageFile);
-        t.fitHeightProperty().setValue(24);
-        t.fitWidthProperty().setValue(24);
-        return t;
+    protected MaterialDesignIconView getIconFile() {
+        return new MaterialDesignIconView(MaterialDesignIcon.FILE_OUTLINE);
     }
 
-    ImageView getIconFolder() {
-        InputStream inputStreamFolder = PasswordKeeper.class.getResourceAsStream("fxml/icons/folder.png");
-        Image imageFolder = new Image(inputStreamFolder);
-        ImageView t = new ImageView(imageFolder);
-        t.fitHeightProperty().setValue(24);
-        t.fitWidthProperty().setValue(24);
-        return t;
+    protected MaterialDesignIconView getIconFolder() {
+        return new MaterialDesignIconView(MaterialDesignIcon.FOLDER_OUTLINE);
     }
 
     @Override
