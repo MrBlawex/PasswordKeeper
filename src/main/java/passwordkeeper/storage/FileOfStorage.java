@@ -8,25 +8,27 @@ import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
-import passwordkeeper.customComponents.ComboField;
-import passwordkeeper.customComponents.Field;
 import passwordkeeper.customComponents.SampleField;
 
 import java.util.ArrayList;
+import java.util.Objects;
 
 public class FileOfStorage extends Item implements KryoSerializable {
 
-    ArrayList<SampleField> fields;
+    private ObservableList<SampleField> fields;
+    private ObservableList<Node> fieldsOfNodes;
 
     public FileOfStorage() {
     }
 
-    FileOfStorage(String name, Boolean safeMode) {
+    FileOfStorage(String name) {
         super(name);
-        fields = new ArrayList<>();
+        fields = FXCollections.observableArrayList();
+        fieldsOfNodes = FXCollections.observableArrayList();
     }
 
     public Boolean addField(SampleField field) {
+        fieldsOfNodes.add(field.getNode());
         return fields.add(field);
     }
 
@@ -36,26 +38,34 @@ public class FileOfStorage extends Item implements KryoSerializable {
     }
 
     public ObservableList<Node> getFields() {
-        ObservableList<Node> temp = FXCollections.observableArrayList();
-
-        fields.forEach(sampleField -> {
-            if (sampleField instanceof Field) temp.add((Field) sampleField);
-            if (sampleField instanceof ComboField) temp.add((ComboField) sampleField);
-        });
-
-        return temp;
+        return fieldsOfNodes;
     }
 
     @Override
     public void write(Kryo kryo, Output output) {
         output.writeString(name);
-        kryo.writeClassAndObject(output, fields);
-        output.flush();
+        kryo.writeClassAndObject(output, new ArrayList<>(fields));
     }
 
     @Override
     public void read(Kryo kryo, Input input) {
         name = input.readString();
-        fields = (ArrayList<SampleField>) kryo.readClassAndObject(input);
+        fields = FXCollections.observableArrayList((ArrayList<SampleField>) kryo.readClassAndObject(input));
+        fieldsOfNodes = FXCollections.observableArrayList();
+        fields.forEach(sampleField -> fieldsOfNodes.add(sampleField.getNode()));
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof FileOfStorage)) return false;
+        if (!super.equals(o)) return false;
+        FileOfStorage that = (FileOfStorage) o;
+        return Objects.equals(fields, that.fields);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(fields);
     }
 }
