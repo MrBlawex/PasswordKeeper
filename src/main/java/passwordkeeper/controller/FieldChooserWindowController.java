@@ -12,6 +12,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
 import passwordkeeper.customComponents.ComboField;
 import passwordkeeper.customComponents.Field;
+import passwordkeeper.customComponents.Header;
 import passwordkeeper.customComponents.SampleField;
 import passwordkeeper.storage.FileOfStorage;
 
@@ -42,6 +43,7 @@ public class FieldChooserWindowController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         list = lv_fields.getItems();
 
+        list.add(new FieldWrapper("Заглавие", new Header("TestHeader")));
         list.add(new FieldWrapper("Простое поле", new Field("Test", "", false)));
         list.add(new FieldWrapper("Комбинированное поле", new ComboField("Test1", "", "Test2", "", false)));
 
@@ -68,6 +70,9 @@ public class FieldChooserWindowController implements Initializable {
             if (tempNode instanceof ComboField) {
                 fileOfStorage.addField(new ComboField((ComboField) tempNode));
             }
+            if (tempNode instanceof Header) {
+                fileOfStorage.addField(new Header((Header) tempNode));
+            }
         }
         if (!cb_saveText.isSelected()) {
             Node tempNode = vbox_previewer.getChildren().get(0);
@@ -77,6 +82,9 @@ public class FieldChooserWindowController implements Initializable {
             }
             if (tempNode instanceof ComboField) {
                 fileOfStorage.addField(new ComboField());
+            }
+            if (tempNode instanceof Header) {
+                fileOfStorage.addField(new Header("TestHeader"));
             }
         }
 
@@ -104,6 +112,7 @@ public class FieldChooserWindowController implements Initializable {
         Node getFieldNode() {
             if (sampleField instanceof Field) return (Field) sampleField;
             if (sampleField instanceof ComboField) return (ComboField) sampleField;
+            if (sampleField instanceof Header) return ((Header) sampleField);
             return null;
         }
 
