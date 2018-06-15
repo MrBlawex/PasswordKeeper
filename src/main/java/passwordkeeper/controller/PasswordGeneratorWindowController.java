@@ -1,5 +1,7 @@
 package passwordkeeper.controller;
 
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
@@ -11,13 +13,10 @@ import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Label;
 import javafx.scene.control.TextField;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
-import passwordkeeper.PasswordKeeper;
 
 import java.awt.*;
 import java.awt.datatransfer.Clipboard;
@@ -249,17 +248,16 @@ public class PasswordGeneratorWindowController implements Initializable {
 
         private AnchorPane anchorPane;
         private TextField textField;
-        private ImageView imageViewCopy;
+        private MaterialDesignIconView imageViewCopy;
         private Button copyToBuff;
 
         private SmallField(String text) {
             this.textField = new TextField(text);
-            this.imageViewCopy = new ImageView();
-            this.imageViewCopy.setFitHeight(24);
-            this.imageViewCopy.setFitWidth(24);
-            this.imageViewCopy.setImage(new Image(PasswordKeeper.class.getResourceAsStream("fxml/icons/copy.png")));
+            this.imageViewCopy = new MaterialDesignIconView(MaterialDesignIcon.CONTENT_COPY);
+            this.imageViewCopy.setGlyphSize(24);
             this.copyToBuff = new Button();
             this.copyToBuff.setGraphic(this.imageViewCopy);
+            this.copyToBuff.setId("buttonImg");
             this.copyToBuff.setOnMouseClicked((event) -> {
                 if (event.getButton() == MouseButton.PRIMARY && !this.textField.getText().isEmpty()) {
                     Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
