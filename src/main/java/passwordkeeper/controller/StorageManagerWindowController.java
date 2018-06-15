@@ -1,6 +1,9 @@
 package passwordkeeper.controller;
 
 import javafx.application.Platform;
+import javafx.beans.binding.Bindings;
+import javafx.beans.property.ObjectProperty;
+import javafx.beans.property.SimpleObjectProperty;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -14,6 +17,7 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.stage.Window;
 import passwordkeeper.PasswordKeeper;
+import passwordkeeper.customComponents.ItemTreeCell;
 import passwordkeeper.storage.FileOfStorage;
 import passwordkeeper.storage.FolderOfStorage;
 import passwordkeeper.storage.Item;
@@ -50,29 +54,26 @@ public class StorageManagerWindowController implements Initializable {
     private ScrollPane scrollPane;
 
     @FXML
-    private VBox mainView;
-
-    @FXML
     private Button search_btn;
 
     private KeeperOfStorage keeperOfStorage;
     private Window storageSelectionWindow = null;
     private Window thisWindow = null;
+    private VBox mainView = null;
 
-    private FileOfStorage tempFile = null;
+    private ObjectProperty<FileOfStorage> tempFile = new SimpleObjectProperty<>();
 
     @Override
     public void initialize(URL url, ResourceBundle rb) {
         Platform.runLater(() -> {
-            if (keeperOfStorage.getStorage() != null) {
-                setToTreeView(keeperOfStorage.getStorage().buildTreeItem());
-            }
             if (storageSelectionWindow != null) {
                 storageSelectionWindow.hide();
             }
+            if (keeperOfStorage.getStorage() != null) {
+                setToTreeView(keeperOfStorage.getStorage().buildTreeItem());
+            }
         });
         initializeHomeWindow();
-
     }
 
     @FXML
@@ -95,10 +96,6 @@ public class StorageManagerWindowController implements Initializable {
 
     private void setToTreeView(TreeItem<Item> root) {
         treeView.setRoot(root);
-    }
-
-    public void refreshOpenedFile() {
-        mainView.getChildren().setAll(tempFile.getFields());
     }
 
     /**
@@ -134,7 +131,6 @@ public class StorageManagerWindowController implements Initializable {
     private void initializeHomeWindow() {
         scrollPane.prefWidthProperty().bind(ach_window.widthProperty().multiply(2.0).divide(3.0));
         ach_leftBar.prefWidthProperty().bind(ach_window.widthProperty().subtract(scrollPane.widthProperty()).subtract(5.0));
-        mainView.prefWidthProperty().bind(scrollPane.widthProperty().subtract(20));
 
         treeView.setContextMenu(makeMenuForHeadFolder());
         treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
@@ -142,7 +138,7 @@ public class StorageManagerWindowController implements Initializable {
                 if (newValue.getValue() instanceof FolderOfStorage) {
                     treeView.setContextMenu(makeMenuForFolder());
                 }
-                if (newValue.getValue() instanceof FolderOfStorage && treeView.getSelectionModel().getSelectedItem().getParent() == null) {
+                if (newValue.getValue() instanceof FolderOfStorage && newValue.getParent() == null) {
                     treeView.setContextMenu(makeMenuForHeadFolder());
                 }
                 if (newValue.getValue() instanceof FileOfStorage) {
@@ -162,7 +158,7 @@ public class StorageManagerWindowController implements Initializable {
             }
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 1) {
                 if (tempItem instanceof FileOfStorage) {
-                    mainView.getChildren().setAll(((FileOfStorage) tempItem).getFields());
+                    tempFile.setValue((FileOfStorage) tempItem);
                 }
                 if (tempItem instanceof FolderOfStorage) {
                     treeView.getSelectionModel().getSelectedItem().setExpanded(!treeView.getSelectionModel().getSelectedItem().isExpanded());
@@ -170,6 +166,17 @@ public class StorageManagerWindowController implements Initializable {
             }
         });
 
+        treeView.setCellFactory(param -> new ItemTreeCell());
+
+        tempFile.addListener((observable, oldValue, newValue) -> {
+            if (oldValue != null) Bindings.unbindContentBidirectional(oldValue.getFields(), mainView.getChildren());
+            mainView = new VBox();
+            mainView.getStyleClass().add("homeVBox");
+            mainView.getChildren().setAll(newValue.getFields());
+            Bindings.bindContentBidirectional(newValue.getFields(), mainView.getChildren());
+            mainView.prefWidthProperty().bind(scrollPane.widthProperty().subtract(20));
+            scrollPane.setContent(mainView);
+        });
     }
 
     /**
@@ -194,6 +201,7 @@ public class StorageManagerWindowController implements Initializable {
                 tempFolderOfStorage.addNewFolder(result.get());
             }
             refreshTreeView();
+            saveChanges();
         });
         MenuItem makeFile = new MenuItem("Создать файл");
         makeFile.setOnAction((event) -> {
@@ -206,9 +214,10 @@ public class StorageManagerWindowController implements Initializable {
             if (result.isPresent()) {
                 Item temp = treeView.getSelectionModel().getSelectedItem().getValue();
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
-                tempFolderOfStorage.addNewFile(result.get(), Boolean.TRUE);
+                tempFolderOfStorage.addNewFile(result.get());
             }
             refreshTreeView();
+            saveChanges();
         });
         return new ContextMenu(makeFolder, makeFile);
     }
@@ -228,6 +237,7 @@ public class StorageManagerWindowController implements Initializable {
                 tempFolderOfStorage.addNewFolder(result.get());
             }
             refreshTreeView();
+            saveChanges();
         });
 
         MenuItem makeFile = new MenuItem("Создать файл");
@@ -241,9 +251,10 @@ public class StorageManagerWindowController implements Initializable {
             if (result.isPresent()) {
                 Item temp = treeView.getSelectionModel().getSelectedItem().getValue();
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
-                tempFolderOfStorage.addNewFile(result.get(), Boolean.TRUE);
+                tempFolderOfStorage.addNewFile(result.get());
             }
             refreshTreeView();
+            saveChanges();
         });
 
         MenuItem rename = new MenuItem("Переименовать");
@@ -256,6 +267,7 @@ public class StorageManagerWindowController implements Initializable {
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
             refreshTreeView();
+            saveChanges();
         });
 
         MenuItem copy = new MenuItem("Копировать");
@@ -276,6 +288,7 @@ public class StorageManagerWindowController implements Initializable {
             }
 
             refreshTreeView();
+            saveChanges();
         });
 
         return new ContextMenu(makeFolder, makeFile, rename, copy, insert, delete);
@@ -301,6 +314,9 @@ public class StorageManagerWindowController implements Initializable {
                 stage.setMaxHeight(500);
                 stage.setMaxWidth(800);
 
+                stage.initOwner(thisWindow);
+                stage.initModality(Modality.WINDOW_MODAL);
+
                 stage.setTitle(NAME_PROGRAM + " - " + "Выбор нового поля");
 
                 stage.setScene(scene);
@@ -308,6 +324,7 @@ public class StorageManagerWindowController implements Initializable {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
+            saveChanges();
         });
 
         MenuItem rename = new MenuItem("Переименовать");
@@ -320,6 +337,7 @@ public class StorageManagerWindowController implements Initializable {
             Optional<String> result = dialog.showAndWait();
             result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
             refreshTreeView();
+            saveChanges();
         });
 
         MenuItem copy = new MenuItem("Копировать");
@@ -332,7 +350,7 @@ public class StorageManagerWindowController implements Initializable {
             } catch (Error ex) {
                 Alert alert = new Alert(Alert.AlertType.ERROR);
                 alert.setTitle(NAME_PROGRAM + " - " + "Ошибка");
-                alert.setHeaderText("Папку нельзя удалить!");
+                alert.setHeaderText("Файл нельзя удалить!");
                 alert.setContentText("Включён режим безопасности, его можно отключить в настройках");
                 alert.show();
             } catch (Exception ex) {
@@ -340,6 +358,7 @@ public class StorageManagerWindowController implements Initializable {
             }
 
             refreshTreeView();
+            saveChanges();
         });
 
         return new ContextMenu(insertField, rename, copy, insert, delete);
@@ -355,8 +374,8 @@ public class StorageManagerWindowController implements Initializable {
 
             stage.setResizable(false);
 
-            stage.initOwner(menuBar.getScene().getWindow());
-            stage.initModality(Modality.NONE);
+            stage.initOwner(thisWindow);
+            stage.initModality(Modality.WINDOW_MODAL);
 
             stage.setTitle(NAME_PROGRAM + " - " + "Генератор паролей");
 
