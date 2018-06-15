@@ -1,5 +1,8 @@
 package passwordkeeper.customComponents;
 
-public interface SampleField {
 
+import javafx.scene.Node;
+
+public interface SampleField {
+    Node getNode();
 }
