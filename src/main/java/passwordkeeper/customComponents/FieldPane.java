@@ -8,7 +8,7 @@ import javafx.scene.input.TransferMode;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.VBox;
 
-public abstract class FieldPane extends AnchorPane {
+abstract class FieldPane extends AnchorPane {
 
     protected void makeDraggable() {
         this.setOnDragDetected((event) -> {
