@@ -4,7 +4,10 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import javafx.application.Platform;
+import javafx.beans.property.SimpleStringProperty;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.scene.Node;
 import javafx.scene.control.TreeItem;
@@ -12,11 +15,14 @@ import passwordkeeper.customComponents.SampleField;
 
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.Observer;
 
 public class FileOfStorage extends Item implements KryoSerializable {
 
     private ObservableList<SampleField> fields;
     private ObservableList<Node> fieldsOfNodes;
+    private TreeItem<Item> temp;
+    private Observer manager;
 
     public FileOfStorage() {
     }
@@ -25,16 +31,20 @@ public class FileOfStorage extends Item implements KryoSerializable {
         super(name);
         fields = FXCollections.observableArrayList();
         fieldsOfNodes = FXCollections.observableArrayList();
+        temp = new TreeItem<>(this, getIconFile());
+
+        initializeObserveData();
     }
 
-    public Boolean addField(SampleField field) {
+    public void addField(SampleField field) {
         fieldsOfNodes.add(field.getNode());
-        return fields.add(field);
+        fields.add(field);
+        if (manager != null) Platform.runLater(() -> field.setObserver(manager));
     }
 
     @Override
     public TreeItem<Item> getTreeItem() {
-        return new TreeItem<>(this, getIconFile());
+        return temp;
     }
 
     public ObservableList<Node> getFields() {
@@ -42,17 +52,21 @@ public class FileOfStorage extends Item implements KryoSerializable {
     }
 
     @Override
-    public void write(Kryo kryo, Output output) {
-        output.writeString(name);
-        kryo.writeClassAndObject(output, new ArrayList<>(fields));
+    public void setObserver(Observer observer) {
+        manager = observer;
+        this.addObserver(observer);
+        fields.forEach(sampleField -> sampleField.setObserver(observer));
     }
 
-    @Override
-    public void read(Kryo kryo, Input input) {
-        name = input.readString();
-        fields = FXCollections.observableArrayList((ArrayList<SampleField>) kryo.readClassAndObject(input));
-        fieldsOfNodes = FXCollections.observableArrayList();
-        fields.forEach(sampleField -> fieldsOfNodes.add(sampleField.getNode()));
+    private void initializeObserveData() {
+        fields.addListener((ListChangeListener<? super SampleField>) c -> {
+            setChanged();
+            notifyObservers();
+        });
+        name.addListener((observable, oldValue, newValue) -> {
+            setChanged();
+            notifyObservers();
+        });
     }
 
     @Override
@@ -61,11 +75,28 @@ public class FileOfStorage extends Item implements KryoSerializable {
         if (!(o instanceof FileOfStorage)) return false;
         if (!super.equals(o)) return false;
         FileOfStorage that = (FileOfStorage) o;
-        return Objects.equals(fields, that.fields);
+        return Objects.equals(fields, that.fields) && Objects.equals(fieldsOfNodes, that.fieldsOfNodes) && Objects.equals(temp, that.temp);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(fields);
+        return Objects.hash(fields, fieldsOfNodes, temp);
+    }
+
+    @Override
+    public void write(Kryo kryo, Output output) {
+        output.writeString(name.getValue());
+        kryo.writeClassAndObject(output, new ArrayList<>(fields));
+    }
+
+    @Override
+    public void read(Kryo kryo, Input input) {
+        name = new SimpleStringProperty(input.readString());
+        fields = FXCollections.observableArrayList((ArrayList<SampleField>) kryo.readClassAndObject(input));
+        fieldsOfNodes = FXCollections.observableArrayList();
+        fields.forEach(sampleField -> fieldsOfNodes.add(sampleField.getNode()));
+        temp = new TreeItem<>(this, getIconFile());
+
+        initializeObserveData();
     }
 }

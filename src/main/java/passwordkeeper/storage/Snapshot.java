@@ -26,7 +26,12 @@ public class Snapshot implements KryoSerializable {
     }
 
     public String getDate() {
-        return new SimpleDateFormat().format(date);
+        return new SimpleDateFormat("HH:mm dd.MM.yyyy").format(date);
+    }
+
+    @Override
+    public String toString() {
+        return text + ", " + getDate();
     }
 
     @Override
@@ -39,10 +44,5 @@ public class Snapshot implements KryoSerializable {
     public void read(Kryo kryo, Input input) {
         text = input.readString();
         date = (Date) kryo.readClassAndObject(input);
-    }
-
-    @Override
-    public String toString() {
-        return text + ", " + getDate();
     }
 }

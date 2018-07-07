@@ -17,7 +17,7 @@ public class PasswordKeeper extends Application {
 
     @Override
     public void start(Stage stage) throws IOException {
-        FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/StorageSelectionWindow.fxml"));
+        FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/StorageSelectionWindow.fxml"));
 
         Scene scene = new Scene(loader.load());
 

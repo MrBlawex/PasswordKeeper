@@ -4,43 +4,62 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.scene.control.TreeItem;
 
 import java.util.Objects;
+import java.util.Observable;
+import java.util.Observer;
 
-public class Storage implements KryoSerializable {
+public class Storage extends Observable implements KryoSerializable {
 
-    private String passwordOfStorage;
+    private StringProperty passwordOfStorage;
     private FolderOfStorage rootFolder;
-    private Boolean safeMode = false;
+    private BooleanProperty safeMode;
 
     public Storage() {
     }
 
     Storage(String passwordOfStorage) {
         this.rootFolder = new FolderOfStorage("Storage");
-        this.passwordOfStorage = passwordOfStorage;
+        this.passwordOfStorage = new SimpleStringProperty(passwordOfStorage);
+        this.safeMode = new SimpleBooleanProperty(false);
+    }
+
+    void setObserver(Observer observer) {
+        this.addObserver(observer);
+        rootFolder.setObserver(observer);
+        initializeObserveData();
+    }
+
+    private void initializeObserveData() {
+        safeMode.addListener((observable, oldValue, newValue) -> {
+            setChanged();
+            notifyObservers();
+        });
+        passwordOfStorage.addListener((observable, oldValue, newValue) -> {
+            setChanged();
+            notifyObservers();
+        });
     }
 
     public String getPasswordOfStorage() {
-        return passwordOfStorage;
+        return passwordOfStorage.getValue();
     }
 
-    /**
-     * Создает дерево элементов
-     *
-     * @return TreeItem<>
-     */
     public TreeItem<Item> buildTreeItem() {
         return rootFolder.getTreeItem();
     }
 
-    Boolean getSafeMode() {
-        return safeMode;
+    boolean getSafeMode() {
+        return safeMode.getValue();
     }
 
-    public void setSafeMode(Boolean safeMode) {
-        this.safeMode = safeMode;
+    void setSafeMode(Boolean safeMode) {
+        this.safeMode.setValue(safeMode);
     }
 
     @Override
@@ -59,15 +78,17 @@ public class Storage implements KryoSerializable {
 
     @Override
     public void write(Kryo kryo, Output output) {
-        output.writeString(passwordOfStorage);
-        output.writeBoolean(safeMode);
+        output.writeString(passwordOfStorage.getValue());
+        output.writeBoolean(safeMode.getValue());
         kryo.writeClassAndObject(output, rootFolder);
     }
 
     @Override
     public void read(Kryo kryo, Input input) {
-        passwordOfStorage = input.readString();
-        safeMode = input.readBoolean();
+        passwordOfStorage = new SimpleStringProperty(input.readString());
+        safeMode = new SimpleBooleanProperty(input.readBoolean());
         rootFolder = (FolderOfStorage) kryo.readClassAndObject(input);
+
+        initializeObserveData();
     }
 }

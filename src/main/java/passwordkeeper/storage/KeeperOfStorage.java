@@ -5,10 +5,15 @@ import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Objects;
+import java.util.Observable;
+import java.util.Observer;
 
-public class KeeperOfStorage implements KryoSerializable {
+public class KeeperOfStorage implements KryoSerializable, Observer {
 
     private String name;
     private File pathToFile;
@@ -17,10 +22,12 @@ public class KeeperOfStorage implements KryoSerializable {
     public KeeperOfStorage() {
     }
 
-    public KeeperOfStorage(Storage storage, File pathToFile, String name) {
+    private KeeperOfStorage(Storage storage, File pathToFile, String name) {
         this.name = name;
         this.pathToFile = pathToFile;
         this.storage = storage;
+
+        setObserver();
     }
 
     public static KeeperOfStorage newStorage(File pathToDir, String name, String psw) throws IOException {
@@ -34,40 +41,27 @@ public class KeeperOfStorage implements KryoSerializable {
         return new KeeperOfStorage(storage, pathToFile, name);
     }
 
-    /**
-     * Сохраняет хранилище в файл
-     *
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    public static void saveStorage(KeeperOfStorage keeper) throws FileNotFoundException, IOException {
-        Kryo kryo = new Kryo();
-        Output output = new Output(new FileOutputStream(keeper.getPathToFile()));
-        kryo.register(Storage.class);
-        kryo.writeObject(output, keeper.getStorage());
-        output.close();
-    }
-
-    /**
-     * Получает из файла хранилище
-     *
-     * @param pathToFile
-     * @return
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    public static KeeperOfStorage getKeeperFromFile(File pathToFile) throws FileNotFoundException, IOException {
+    public static KeeperOfStorage getKeeperFromFile(File pathToFile) throws IOException {
         Kryo kryo = new Kryo();
         kryo.register(Storage.class);
         Input input = new Input(new FileInputStream(pathToFile));
         return new KeeperOfStorage(kryo.readObject(input, Storage.class), pathToFile, pathToFile.getName().replace(".pks", ""));
     }
 
+    public void saveStorage() throws IOException {
+        Kryo kryo = new Kryo();
+        Output output = new Output(new FileOutputStream(this.getPathToFile()));
+        kryo.register(Storage.class);
+        kryo.writeObject(output, this.getStorage());
+        output.close();
+    }
+
+
     public String getName() {
         return name;
     }
 
-    public File getPathToFile() {
+    private File getPathToFile() {
         return pathToFile;
     }
 
@@ -76,12 +70,30 @@ public class KeeperOfStorage implements KryoSerializable {
     }
 
     public boolean checkExistsFile() {
-        return this.pathToFile.exists();
+        try {
+            return this.pathToFile.exists();
+        } catch (NullPointerException ex) {
+            return false;
+        }
+    }
+
+    private void setObserver() {
+        storage.setObserver(this);
     }
 
     @Override
     public String toString() {
         return name;
+    }
+
+
+    @Override
+    public void update(Observable o, Object arg) {
+        try {
+            this.saveStorage();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
     @Override
@@ -110,6 +122,8 @@ public class KeeperOfStorage implements KryoSerializable {
             this.name = temp.getName();
             this.pathToFile = temp.getPathToFile();
             this.storage = temp.getStorage();
+
+            temp.setObserver();
         } catch (IOException e) {
 
         }
