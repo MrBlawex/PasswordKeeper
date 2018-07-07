@@ -4,6 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import javafx.collections.FXCollections;
+import javafx.collections.ListChangeListener;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -49,7 +50,7 @@ public class StorageSelectionWindowController implements Initializable {
     @FXML
     public void createStorage(MouseEvent event) {
         try {
-            FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/StorageCreatorWindow.fxml"));
+            FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/StorageCreatorWindow.fxml"));
 
             Scene scene = new Scene(loader.load());
             Stage stage = new Stage();
@@ -112,7 +113,7 @@ public class StorageSelectionWindowController implements Initializable {
         lv_storages.setOnMouseClicked((event) -> {
             if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 2 && !lv_storages.getSelectionModel().isEmpty()) {
                 try {
-                    FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/LoginFormWindow.fxml"));
+                    FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/LoginFormWindow.fxml"));
 
                     Scene scene = new Scene(loader.load());
                     Stage stage = new Stage();
@@ -135,20 +136,22 @@ public class StorageSelectionWindowController implements Initializable {
                 }
             }
         });
-/*
-        getList();
 
-        list.addListener((ListChangeListener<? super KeeperOfStorage>) c -> {
+        try {
+            getList();
+        } catch (FileNotFoundException e) {
             saveList();
-        });
+        }
 
-        showDialogForDelete(getNotFoundFiles()); */
+        list.addListener((ListChangeListener<? super KeeperOfStorage>) c -> saveList());
+
+        showDialogForDelete(getNotFoundFiles());
     }
 
     private void saveList() {
         try {
             Kryo kryo = new Kryo();
-            Output output = new Output(new FileOutputStream(new File("src/main/java/passwordkeeper/programFiles/list.kryo")));
+            Output output = new Output(new FileOutputStream(new File("src/main/resources/list.kryo")));
             kryo.writeClassAndObject(output, new ArrayList<>(list));
             output.flush();
             output.close();
@@ -157,15 +160,11 @@ public class StorageSelectionWindowController implements Initializable {
         }
     }
 
-    private void getList() {
-        try {
-            Kryo kryo = new Kryo();
-            Input input = new Input(new FileInputStream(new File("src/main/java/passwordkeeper/programFiles/list.kryo")));
-            list = (ObservableList<KeeperOfStorage>) kryo.readClassAndObject(input);
-            input.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
-        }
+    private void getList() throws FileNotFoundException {
+        Kryo kryo = new Kryo();
+        Input input = new Input(new FileInputStream(new File("src/main/resources/list.kryo")));
+        list.setAll((ArrayList<KeeperOfStorage>) kryo.readClassAndObject(input));
+        input.close();
     }
 
     private ArrayList<KeeperOfStorage> getNotFoundFiles() {
@@ -192,9 +191,9 @@ public class StorageSelectionWindowController implements Initializable {
 
             Optional<ButtonType> result = alert.showAndWait();
 
-            result.ifPresent(buttonType -> list.removeAll(listForRemove));
-
-            alert.showAndWait();
+            if (result.get() == buttonTypeOne) {
+                System.out.println("twewa");
+            }
         }
     }
 }

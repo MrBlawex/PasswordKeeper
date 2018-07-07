@@ -88,7 +88,7 @@ public class StorageManagerWindowController implements Initializable {
     @FXML
     public void saveChanges() {
         try {
-            KeeperOfStorage.saveStorage(keeperOfStorage);
+            keeperOfStorage.saveStorage();
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -132,41 +132,50 @@ public class StorageManagerWindowController implements Initializable {
         scrollPane.prefWidthProperty().bind(ach_window.widthProperty().multiply(2.0).divide(3.0));
         ach_leftBar.prefWidthProperty().bind(ach_window.widthProperty().subtract(scrollPane.widthProperty()).subtract(5.0));
 
-        treeView.setContextMenu(makeMenuForHeadFolder());
-        treeView.getSelectionModel().selectedItemProperty().addListener((observable, oldValue, newValue) -> {
-            try {
-                if (newValue.getValue() instanceof FolderOfStorage) {
-                    treeView.setContextMenu(makeMenuForFolder());
+        treeView.setCellFactory(param -> {
+            ItemTreeCell itemTreeCell = new ItemTreeCell() {
+                @Override
+                protected void updateItem(Item item, boolean empty) {
+                    super.updateItem(item, empty);
+                    if (!empty && item != null) {
+                        setText(item.toString());
+                        setGraphic(getTreeItem().getGraphic());
+                    } else {
+                        setText(null);
+                        setGraphic(null);
+                    }
+
+                    if (item instanceof FolderOfStorage && getTreeItem().getParent() == null) {
+                        setContextMenu(makeMenuForHeadFolder());
+                    }
+                    if (item instanceof FolderOfStorage && getTreeItem().getParent() != null) {
+                        setContextMenu(makeMenuForFolder());
+                    }
+                    if (item instanceof FileOfStorage) {
+                        setContextMenu(makeMenuForFile());
+                    }
                 }
-                if (newValue.getValue() instanceof FolderOfStorage && newValue.getParent() == null) {
-                    treeView.setContextMenu(makeMenuForHeadFolder());
+            };
+
+            itemTreeCell.setOnMouseClicked(event -> {
+                if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 1) {
+                    try {
+                        Item temp = itemTreeCell.getTreeItem().getValue();
+                        if (temp instanceof FolderOfStorage) {
+                            itemTreeCell.getTreeItem().setExpanded(!itemTreeCell.getTreeItem().isExpanded());
+                        }
+                        if (temp instanceof FileOfStorage) {
+                            tempFile.setValue((FileOfStorage) temp);
+                        }
+                    } catch (NullPointerException ex) {
+                        itemTreeCell.getTreeView().getSelectionModel().clearSelection();
+                        event.consume();
+                    }
                 }
-                if (newValue.getValue() instanceof FileOfStorage) {
-                    treeView.setContextMenu(makeMenuForFile());
-                }
-            } catch (Exception ex) {
-                //ex.printStackTrace();
-            }
+            });
+
+            return itemTreeCell;
         });
-
-        treeView.setOnMouseClicked((event) -> {
-            Item tempItem = null;
-            try {
-                tempItem = treeView.getSelectionModel().getSelectedItem().getValue();
-            } catch (Exception ex) {
-
-            }
-            if (event.getButton() == MouseButton.PRIMARY && event.getClickCount() == 1) {
-                if (tempItem instanceof FileOfStorage) {
-                    tempFile.setValue((FileOfStorage) tempItem);
-                }
-                if (tempItem instanceof FolderOfStorage) {
-                    treeView.getSelectionModel().getSelectedItem().setExpanded(!treeView.getSelectionModel().getSelectedItem().isExpanded());
-                }
-            }
-        });
-
-        treeView.setCellFactory(param -> new ItemTreeCell());
 
         tempFile.addListener((observable, oldValue, newValue) -> {
             if (oldValue != null) Bindings.unbindContentBidirectional(oldValue.getFields(), mainView.getChildren());
@@ -174,16 +183,9 @@ public class StorageManagerWindowController implements Initializable {
             mainView.getStyleClass().add("homeVBox");
             mainView.getChildren().setAll(newValue.getFields());
             Bindings.bindContentBidirectional(newValue.getFields(), mainView.getChildren());
-            mainView.prefWidthProperty().bind(scrollPane.widthProperty().subtract(20));
+            scrollPane.setFitToWidth(true);
             scrollPane.setContent(mainView);
         });
-    }
-
-    /**
-     * Обновляет данные в TreeView
-     */
-    private void refreshTreeView() {
-        setToTreeView(keeperOfStorage.getStorage().buildTreeItem());
     }
 
     private ContextMenu makeMenuForHeadFolder() {
@@ -200,8 +202,6 @@ public class StorageManagerWindowController implements Initializable {
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
                 tempFolderOfStorage.addNewFolder(result.get());
             }
-            refreshTreeView();
-            saveChanges();
         });
         MenuItem makeFile = new MenuItem("Создать файл");
         makeFile.setOnAction((event) -> {
@@ -216,8 +216,6 @@ public class StorageManagerWindowController implements Initializable {
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
                 tempFolderOfStorage.addNewFile(result.get());
             }
-            refreshTreeView();
-            saveChanges();
         });
         return new ContextMenu(makeFolder, makeFile);
     }
@@ -236,8 +234,6 @@ public class StorageManagerWindowController implements Initializable {
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
                 tempFolderOfStorage.addNewFolder(result.get());
             }
-            refreshTreeView();
-            saveChanges();
         });
 
         MenuItem makeFile = new MenuItem("Создать файл");
@@ -253,8 +249,6 @@ public class StorageManagerWindowController implements Initializable {
                 FolderOfStorage tempFolderOfStorage = (FolderOfStorage) temp;
                 tempFolderOfStorage.addNewFile(result.get());
             }
-            refreshTreeView();
-            saveChanges();
         });
 
         MenuItem rename = new MenuItem("Переименовать");
@@ -265,9 +259,10 @@ public class StorageManagerWindowController implements Initializable {
             dialog.setGraphic(null);
             dialog.setContentText("Введите название: ");
             Optional<String> result = dialog.showAndWait();
-            result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
-            refreshTreeView();
-            saveChanges();
+            result.ifPresent(s -> {
+                treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s);
+                treeView.refresh();
+            });
         });
 
         MenuItem copy = new MenuItem("Копировать");
@@ -287,8 +282,6 @@ public class StorageManagerWindowController implements Initializable {
                 ex.printStackTrace();
             }
 
-            refreshTreeView();
-            saveChanges();
         });
 
         return new ContextMenu(makeFolder, makeFile, rename, copy, insert, delete);
@@ -300,7 +293,7 @@ public class StorageManagerWindowController implements Initializable {
             FileOfStorage tempFileOfStorage = (FileOfStorage) treeView.getSelectionModel().getSelectedItem().getValue();
 
             try {
-                FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/FieldChooserWindow.fxml"));
+                FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/FieldChooserWindow.fxml"));
 
                 Scene scene = new Scene(loader.load());
                 Stage stage = new Stage();
@@ -324,7 +317,6 @@ public class StorageManagerWindowController implements Initializable {
             } catch (IOException ex) {
                 ex.printStackTrace();
             }
-            saveChanges();
         });
 
         MenuItem rename = new MenuItem("Переименовать");
@@ -335,13 +327,13 @@ public class StorageManagerWindowController implements Initializable {
             dialog.setGraphic(null);
             dialog.setContentText("Введите название: ");
             Optional<String> result = dialog.showAndWait();
-            result.ifPresent(s -> treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s));
-            refreshTreeView();
-            saveChanges();
+            result.ifPresent(s -> {
+                treeView.getSelectionModel().getSelectedItem().getValue().renameItem(s);
+                treeView.refresh();
+            });
         });
 
         MenuItem copy = new MenuItem("Копировать");
-        MenuItem insert = new MenuItem("Вставить");
         MenuItem delete = new MenuItem("Удалить");
         delete.setOnAction((event) -> {
             FolderOfStorage parentFolderOfStorage = (FolderOfStorage) treeView.getSelectionModel().getSelectedItem().getParent().getValue();
@@ -357,17 +349,15 @@ public class StorageManagerWindowController implements Initializable {
                 ex.printStackTrace();
             }
 
-            refreshTreeView();
-            saveChanges();
         });
 
-        return new ContextMenu(insertField, rename, copy, insert, delete);
+        return new ContextMenu(insertField, rename, copy, delete);
     }
 
     @FXML
     public void showGenerator(ActionEvent actionEvent) {
         try {
-            FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/PasswordGeneratorWindow.fxml"));
+            FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/PasswordGeneratorWindow.fxml"));
 
             Scene scene = new Scene(loader.load());
             Stage stage = new Stage();

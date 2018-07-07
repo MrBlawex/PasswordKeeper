@@ -6,6 +6,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.DoubleProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleDoubleProperty;
+import javafx.css.PseudoClass;
 import javafx.event.ActionEvent;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
@@ -28,8 +29,9 @@ import java.util.ResourceBundle;
 
 public class PasswordGeneratorWindowController implements Initializable {
 
-    BooleanProperty mode = new SimpleBooleanProperty(false);
-    DoubleProperty maxDoubleProperty = new SimpleDoubleProperty(0);
+    private BooleanProperty mode = new SimpleBooleanProperty(false);
+    private DoubleProperty maxDoubleProperty = new SimpleDoubleProperty(0);
+
     @FXML
     private CheckBox cb_upperCaseChar;
 
@@ -170,7 +172,7 @@ public class PasswordGeneratorWindowController implements Initializable {
         slider_characters.maxProperty().addListener((observable, oldValue, newValue) -> lb_maxSl.setText(String.valueOf(newValue.intValue())));
         slider_characters.minProperty().addListener((observable, oldValue, newValue) -> lb_minSl.setText(String.valueOf(newValue.intValue())));
 
-        btn_generate.disableProperty().bind(cb_digits.selectedProperty().or(cb_upperCaseChar.selectedProperty().or(cb_lowerCaseChar.selectedProperty())).not());
+        btn_generate.disableProperty().bind(cb_digits.selectedProperty().or(cb_upperCaseChar.selectedProperty()).or(cb_lowerCaseChar.selectedProperty()).and(tx_characters.editableProperty().not()).not());
 
         tx_characters.editableProperty().bind(mode);
         tx_characters.setOnMouseClicked((event) -> {
@@ -179,14 +181,24 @@ public class PasswordGeneratorWindowController implements Initializable {
             }
         });
 
+        PseudoClass pseudoClassEmpty = PseudoClass.getPseudoClass("empty");
         tx_characters.textProperty().addListener((observable, oldValue, newValue) -> {
-            int value = Integer.valueOf(newValue);
-            if (slider_characters.getMax() >= value && slider_characters.getMin() <= value) {
-                tx_characters.setStyle("-fx-background-color: white");
+            if (!newValue.matches("[0-9]*")) {
+                tx_characters.setText(oldValue);
             } else {
-                tx_characters.setStyle("-fx-background-color: red");
+                if (!newValue.isEmpty()) {
+                    tx_characters.pseudoClassStateChanged(pseudoClassEmpty, false);
+                    int value = Integer.valueOf(newValue);
+                    if (slider_characters.getMax() >= value && slider_characters.getMin() <= value) {
+                        tx_characters.setStyle("-fx-background-color: white");
+                        slider_characters.setValue(value);
+                    } else {
+                        tx_characters.setStyle("-fx-background-color: red");
+                    }
+                } else {
+                    tx_characters.pseudoClassStateChanged(pseudoClassEmpty, true);
+                }
             }
-            if (!newValue.matches("[0-9]*")) tx_characters.setText(oldValue);
         });
 
         tx_characters.setOnKeyPressed((event) -> {

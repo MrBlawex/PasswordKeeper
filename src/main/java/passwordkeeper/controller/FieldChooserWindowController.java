@@ -43,7 +43,7 @@ public class FieldChooserWindowController implements Initializable {
     public void initialize(URL location, ResourceBundle resources) {
         list = lv_fields.getItems();
 
-        list.add(new FieldWrapper("Заглавие", new Header("TestHeader")));
+        list.add(new FieldWrapper("Заглавие", new Header("TestHeader", false)));
         list.add(new FieldWrapper("Простое поле", new Field("Test", "", false)));
         list.add(new FieldWrapper("Комбинированное поле", new ComboField("Test1", "", "Test2", "", false)));
 
@@ -84,7 +84,7 @@ public class FieldChooserWindowController implements Initializable {
                 fileOfStorage.addField(new ComboField());
             }
             if (tempNode instanceof Header) {
-                fileOfStorage.addField(new Header("TestHeader"));
+                fileOfStorage.addField(new Header("TestHeader", true));
             }
         }
 

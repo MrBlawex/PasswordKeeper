@@ -71,7 +71,7 @@ public class LoginFormWindowController implements Initializable {
     private void loginToStorage(Window window) {
         if (passwordField.getText().equals(keeperOfStorage.getStorage().getPasswordOfStorage())) {
             try {
-                FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("fxml/StorageManagerWindow.fxml"));
+                FXMLLoader loader = new FXMLLoader(PasswordKeeper.class.getResource("/fxml/StorageManagerWindow.fxml"));
 
                 Scene scene = new Scene(loader.load());
                 Stage stage = new Stage();
