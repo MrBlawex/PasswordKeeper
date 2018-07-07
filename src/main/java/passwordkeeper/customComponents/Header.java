@@ -4,9 +4,7 @@ import com.esotericsoftware.kryo.Kryo;
 import com.esotericsoftware.kryo.KryoSerializable;
 import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
-import javafx.application.Platform;
-import javafx.beans.property.SimpleStringProperty;
-import javafx.beans.property.StringProperty;
+import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
@@ -18,9 +16,11 @@ import javafx.scene.control.TextInputDialog;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 
 import java.io.IOException;
 import java.net.URL;
+import java.util.Observer;
 import java.util.Optional;
 import java.util.ResourceBundle;
 
@@ -37,14 +37,13 @@ public class Header extends FieldPane implements SampleField, KryoSerializable, 
     @FXML
     private Label label;
 
-    private StringProperty textProperty;
+    @FXML
+    private MaterialDesignIconView btn_remove;
+
+    private HeaderDataObserver headerDataObserver;
 
     public Header() {
-        this.textProperty = new SimpleStringProperty("");
-
-        Platform.runLater(this::makeDraggable);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Header.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Header.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -53,14 +52,13 @@ public class Header extends FieldPane implements SampleField, KryoSerializable, 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        makeDraggable();
+        makeRemovable();
     }
 
-    public Header(String text) {
-        this.textProperty = new SimpleStringProperty(text);
-
-        Platform.runLater(this::makeDraggable);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Header.fxml"));
+    public Header(String text, Boolean difficultVersion) {
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Header.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -68,15 +66,18 @@ public class Header extends FieldPane implements SampleField, KryoSerializable, 
             loader.load();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        initializeDataObserver();
+        label.setText(text);
+        if (difficultVersion) {
+            makeDraggable();
+            makeRemovable();
         }
     }
 
     public Header(Header header) {
-        this.textProperty = new SimpleStringProperty(header.textProperty.get());
-
-        Platform.runLater(this::makeDraggable);
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("Header.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/Header.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -85,16 +86,20 @@ public class Header extends FieldPane implements SampleField, KryoSerializable, 
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        this.headerDataObserver = header.headerDataObserver;
+        this.headerDataObserver.bindText(label.textProperty());
+        makeDraggable();
+        makeRemovable();
     }
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        initializePane();
         initializeControl();
     }
 
-    private void initializePane() {
-        label.textProperty().bindBidirectional(textProperty);
+    private void initializeDataObserver() {
+        headerDataObserver = new HeaderDataObserver(label.textProperty());
     }
 
     private void initializeControl() {
@@ -118,18 +123,28 @@ public class Header extends FieldPane implements SampleField, KryoSerializable, 
         });
     }
 
-    @Override
-    public void write(Kryo kryo, Output output) {
-        output.writeString(textProperty.getValue());
+    private void makeRemovable() {
+        btn_remove.setOnMouseClicked(event -> ((VBox) this.getParent()).getChildren().remove(this));
     }
 
     @Override
-    public void read(Kryo kryo, Input input) {
-        textProperty.setValue(input.readString());
+    public void setObserver(Observer observer) {
+        headerDataObserver.addObserver(observer);
     }
 
     @Override
     public Node getNode() {
         return this;
+    }
+
+    @Override
+    public void write(Kryo kryo, Output output) {
+        kryo.writeClassAndObject(output, headerDataObserver);
+    }
+
+    @Override
+    public void read(Kryo kryo, Input input) {
+        headerDataObserver = (HeaderDataObserver) kryo.readClassAndObject(input);
+        headerDataObserver.bindText(label.textProperty());
     }
 }

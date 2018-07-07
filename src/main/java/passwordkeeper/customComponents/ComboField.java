@@ -6,7 +6,6 @@ import com.esotericsoftware.kryo.io.Input;
 import com.esotericsoftware.kryo.io.Output;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIcon;
 import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView;
-import javafx.application.Platform;
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
@@ -15,18 +14,19 @@ import javafx.css.PseudoClass;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.fxml.Initializable;
-import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Button;
 import javafx.scene.control.*;
 import javafx.scene.control.Dialog;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.MouseButton;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.HBox;
+import javafx.scene.layout.VBox;
 import passwordkeeper.storage.Snapshot;
 
 import java.awt.*;
@@ -34,10 +34,9 @@ import java.awt.datatransfer.Clipboard;
 import java.awt.datatransfer.StringSelection;
 import java.io.IOException;
 import java.net.URL;
-import java.util.ArrayList;
+import java.util.Observer;
 import java.util.Optional;
 import java.util.ResourceBundle;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static passwordkeeper.PasswordKeeper.NAME_PROGRAM;
 
@@ -89,19 +88,25 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
     private Button copyToBuff2;
 
     @FXML
+    private Button btn_history1;
+
+    @FXML
+    private Button btn_history2;
+
+    @FXML
     private AnchorPane fields_box1;
 
     @FXML
     private AnchorPane fields_box2;
 
+    @FXML
+    private MaterialDesignIconView btn_remove;
 
     private MaterialDesignIconView iconEYE1;
     private MaterialDesignIconView iconEYE_OFF1;
-    private MaterialDesignIconView iconCopy1;
 
     private MaterialDesignIconView iconEYE2;
     private MaterialDesignIconView iconEYE_OFF2;
-    private MaterialDesignIconView iconCopy2;
 
     private StringProperty nameProperty1;
     private StringProperty textProperty1;
@@ -110,11 +115,8 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
     private StringProperty textProperty2;
     private BooleanProperty isShowing2;
 
-    private ArrayList<Snapshot> history1;
-    private ArrayList<Snapshot> history2;
-
-    private Snapshot currentSnapshot1;
-    private Snapshot currentSnapshot2;
+    private FieldDataObserver fieldDataObserver1;
+    private FieldDataObserver fieldDataObserver2;
 
     public ComboField() {
         nameProperty1 = new SimpleStringProperty("");
@@ -125,12 +127,7 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         textProperty2 = new SimpleStringProperty("");
         isShowing2 = new SimpleBooleanProperty(false);
 
-        Platform.runLater(() -> {
-            initializeHistory();
-            makeDraggable();
-        });
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("ComboField.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ComboField.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -139,6 +136,10 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        initializeFieldObserver();
+        makeDraggable();
+        makeRemovable();
     }
 
     public ComboField(String name1, String text1, String name2, String text2, Boolean difficultVersion) {
@@ -150,14 +151,7 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         textProperty2 = new SimpleStringProperty(text2);
         isShowing2 = new SimpleBooleanProperty(false);
 
-        if (difficultVersion) {
-            Platform.runLater(() -> {
-                initializeHistory();
-                makeDraggable();
-            });
-        }
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("ComboField.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ComboField.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -165,6 +159,12 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
             loader.load();
         } catch (IOException e) {
             e.printStackTrace();
+        }
+
+        if (difficultVersion) {
+            initializeFieldObserver();
+            makeDraggable();
+            makeRemovable();
         }
     }
 
@@ -177,12 +177,7 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         textProperty2 = new SimpleStringProperty(comboField.textProperty2.get());
         isShowing2 = new SimpleBooleanProperty(comboField.isShowing2.get());
 
-        Platform.runLater(() -> {
-            initializeHistory();
-            makeDraggable();
-        });
-
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("ComboField.fxml"));
+        FXMLLoader loader = new FXMLLoader(getClass().getResource("/fxml/ComboField.fxml"));
         loader.setRoot(this);
         loader.setController(this);
 
@@ -191,6 +186,10 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         } catch (IOException e) {
             e.printStackTrace();
         }
+
+        initializeFieldObserver();
+        makeDraggable();
+        makeRemovable();
     }
 
     @Override
@@ -202,11 +201,9 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
     }
 
     private void tuningImageView() {
-        iconCopy1 = new MaterialDesignIconView(MaterialDesignIcon.CONTENT_COPY);
         iconEYE1 = new MaterialDesignIconView(MaterialDesignIcon.EYE);
         iconEYE_OFF1 = new MaterialDesignIconView(MaterialDesignIcon.EYE_OFF);
 
-        iconCopy2 = new MaterialDesignIconView(MaterialDesignIcon.CONTENT_COPY);
         iconEYE2 = new MaterialDesignIconView(MaterialDesignIcon.EYE);
         iconEYE_OFF2 = new MaterialDesignIconView(MaterialDesignIcon.EYE_OFF);
     }
@@ -264,12 +261,6 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
     }
 
     private void initializeGraphics() {
-        copyToBuff1.setGraphic(iconCopy1);
-        visibleText1.setGraphic(iconEYE1);
-
-        copyToBuff2.setGraphic(iconCopy2);
-        visibleText2.setGraphic(iconEYE2);
-
         if (!isShowing1.getValue()) {
             showMask1();
         } else {
@@ -304,7 +295,6 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
                 hideMask2();
             }
         });
-
 
         MenuItem itemRenameLB1 = new MenuItem("Переименовать");
         itemRenameLB1.setOnAction(event -> {
@@ -343,10 +333,8 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
     }
 
     private void initializeHistory() {
-        history1 = new ArrayList<>();
-        currentSnapshot1 = makeSnapshot1();
-        history2 = new ArrayList<>();
-        currentSnapshot2 = makeSnapshot2();
+        btn_history1.setOnMouseClicked(event -> openHistory1());
+        btn_history2.setOnMouseClicked(event -> openHistory2());
 
         PseudoClass pseudoClassNotSafe = PseudoClass.getPseudoClass("not-safe");
         PseudoClass pseudoClassSafe = PseudoClass.getPseudoClass("safe");
@@ -356,13 +344,14 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         tooltipSafe.setContentDisplay(ContentDisplay.CENTER);
         tooltipNotSafe.setContentDisplay(ContentDisplay.CENTER);
 
-        textField1.pseudoClassStateChanged(pseudoClassSafe, historyContainsText1());
-        passwordField1.pseudoClassStateChanged(pseudoClassSafe, historyContainsText1());
+        textField1.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver1.getHistory().containsOnHistory());
+        passwordField1.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver2.getHistory().containsOnHistory());
 
 
         textField1.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !historyContainsText1()) {
-                currentSnapshot1 = makeSnapshot1();
+            if (event.getCode() == KeyCode.ENTER && !fieldDataObserver1.getHistory().containsOnHistory()) {
+                fieldDataObserver1.getHistory().makeSnapshot();
+                fieldDataObserver1.getHistory().restoreLastSnapshot();
                 textField1.pseudoClassStateChanged(pseudoClassSafe, true);
                 passwordField1.pseudoClassStateChanged(pseudoClassSafe, true);
                 textField1.setTooltip(tooltipSafe);
@@ -371,8 +360,9 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         });
 
         passwordField1.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !historyContainsText1()) {
-                currentSnapshot1 = makeSnapshot1();
+            if (event.getCode() == KeyCode.ENTER && !fieldDataObserver1.getHistory().containsOnHistory()) {
+                fieldDataObserver1.getHistory().makeSnapshot();
+                fieldDataObserver1.getHistory().restoreLastSnapshot();
                 textField1.pseudoClassStateChanged(pseudoClassSafe, true);
                 passwordField1.pseudoClassStateChanged(pseudoClassSafe, true);
                 textField1.setTooltip(tooltipSafe);
@@ -381,27 +371,28 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         });
 
         textProperty1.addListener((observable, oldValue, newValue) -> {
-            if (historyContainsText1()) {
+            if (fieldDataObserver1.getHistory().containsOnHistory()) {
                 textField1.setTooltip(tooltipSafe);
                 passwordField1.setTooltip(tooltipSafe);
             } else {
                 textField1.setTooltip(tooltipNotSafe);
                 passwordField1.setTooltip(tooltipNotSafe);
             }
-            textField1.pseudoClassStateChanged(pseudoClassSafe, historyContainsText1());
-            passwordField1.pseudoClassStateChanged(pseudoClassSafe, historyContainsText1());
+            textField1.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver1.getHistory().containsOnHistory());
+            passwordField1.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver1.getHistory().containsOnHistory());
 
-            textField1.pseudoClassStateChanged(pseudoClassNotSafe, !historyContainsText1());
-            passwordField1.pseudoClassStateChanged(pseudoClassNotSafe, !historyContainsText1());
+            textField1.pseudoClassStateChanged(pseudoClassNotSafe, !fieldDataObserver1.getHistory().containsOnHistory());
+            passwordField1.pseudoClassStateChanged(pseudoClassNotSafe, !fieldDataObserver1.getHistory().containsOnHistory());
         });
 
-        textField2.pseudoClassStateChanged(pseudoClassSafe, historyContainsText2());
-        passwordField2.pseudoClassStateChanged(pseudoClassSafe, historyContainsText2());
+        textField2.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver2.getHistory().containsOnHistory());
+        passwordField2.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver2.getHistory().containsOnHistory());
 
 
         textField2.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !historyContainsText2()) {
-                currentSnapshot2 = makeSnapshot2();
+            if (event.getCode() == KeyCode.ENTER && !fieldDataObserver2.getHistory().containsOnHistory()) {
+                fieldDataObserver2.getHistory().makeSnapshot();
+                fieldDataObserver2.getHistory().restoreLastSnapshot();
                 textField2.pseudoClassStateChanged(pseudoClassSafe, true);
                 passwordField2.pseudoClassStateChanged(pseudoClassSafe, true);
                 textField2.setTooltip(tooltipSafe);
@@ -410,8 +401,9 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         });
 
         passwordField2.setOnKeyPressed(event -> {
-            if (event.getCode() == KeyCode.ENTER && !historyContainsText2()) {
-                currentSnapshot2 = makeSnapshot2();
+            if (event.getCode() == KeyCode.ENTER && !fieldDataObserver2.getHistory().containsOnHistory()) {
+                fieldDataObserver2.getHistory().makeSnapshot();
+                fieldDataObserver2.getHistory().restoreLastSnapshot();
                 textField2.pseudoClassStateChanged(pseudoClassSafe, true);
                 passwordField2.pseudoClassStateChanged(pseudoClassSafe, true);
                 textField2.setTooltip(tooltipSafe);
@@ -420,83 +412,32 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         });
 
         textProperty2.addListener((observable, oldValue, newValue) -> {
-            if (historyContainsText2()) {
+            if (fieldDataObserver2.getHistory().containsOnHistory(newValue)) {
                 textField2.setTooltip(tooltipSafe);
                 passwordField2.setTooltip(tooltipSafe);
             } else {
                 textField2.setTooltip(tooltipNotSafe);
                 passwordField2.setTooltip(tooltipNotSafe);
             }
-            textField2.pseudoClassStateChanged(pseudoClassSafe, historyContainsText2());
-            passwordField2.pseudoClassStateChanged(pseudoClassSafe, historyContainsText2());
+            textField2.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver2.getHistory().containsOnHistory(newValue));
+            passwordField2.pseudoClassStateChanged(pseudoClassSafe, fieldDataObserver2.getHistory().containsOnHistory(newValue));
 
-            textField2.pseudoClassStateChanged(pseudoClassNotSafe, !historyContainsText2());
-            passwordField2.pseudoClassStateChanged(pseudoClassNotSafe, !historyContainsText2());
+            textField2.pseudoClassStateChanged(pseudoClassNotSafe, !fieldDataObserver2.getHistory().containsOnHistory(newValue));
+            passwordField2.pseudoClassStateChanged(pseudoClassNotSafe, !fieldDataObserver2.getHistory().containsOnHistory(newValue));
         });
 
-        ContextMenu contextMenu1 = new ContextMenu();
-        MenuItem menuHistory1 = new MenuItem("История", new MaterialDesignIconView(MaterialDesignIcon.HISTORY));
-        menuHistory1.setOnAction(event -> {
-            Dialog<Snapshot> dialog = new Dialog<>();
+        textField1.setContextMenu(new ContextMenu());
+        passwordField1.setContextMenu(new ContextMenu());
 
-            dialog.setWidth(400);
-            dialog.setTitle(NAME_PROGRAM);
+        textField2.setContextMenu(new ContextMenu());
+        passwordField2.setContextMenu(new ContextMenu());
+    }
 
-            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+    private void initializeFieldObserver() {
+        fieldDataObserver1 = new FieldDataObserver(nameProperty1, textProperty1, isShowing1);
+        fieldDataObserver2 = new FieldDataObserver(nameProperty2, textProperty2, isShowing2);
 
-            ListView<Snapshot> listView = new ListView<>();
-            listView.getItems().addAll(history1);
-
-            listView.getSelectionModel().select(currentSnapshot1);
-
-            dialog.getDialogPane().setPadding(new Insets(5, 5, 5, 5));
-            dialog.getDialogPane().setContent(listView);
-            Platform.runLater(listView::requestFocus);
-            dialog.setResultConverter(param -> listView.getSelectionModel().getSelectedItem());
-
-            Optional<Snapshot> result = dialog.showAndWait();
-
-            result.ifPresent(snapshot -> {
-                currentSnapshot1 = snapshot;
-                restoreSnapshot1(snapshot);
-            });
-        });
-        contextMenu1.getItems().addAll(menuHistory1);
-
-        ContextMenu contextMenu2 = new ContextMenu();
-        MenuItem menuHistory2 = new MenuItem("История", new MaterialDesignIconView(MaterialDesignIcon.HISTORY));
-        menuHistory2.setOnAction(event -> {
-            Dialog<Snapshot> dialog = new Dialog<>();
-
-            dialog.setWidth(400);
-            dialog.setTitle(NAME_PROGRAM);
-
-            dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
-
-            ListView<Snapshot> listView = new ListView<>();
-            listView.getItems().addAll(history2);
-
-            listView.getSelectionModel().select(currentSnapshot2);
-
-            dialog.getDialogPane().setPadding(new Insets(5, 5, 5, 5));
-            dialog.getDialogPane().setContent(listView);
-            Platform.runLater(listView::requestFocus);
-            dialog.setResultConverter(param -> listView.getSelectionModel().getSelectedItem());
-
-            Optional<Snapshot> result = dialog.showAndWait();
-
-            result.ifPresent(snapshot -> {
-                currentSnapshot2 = snapshot;
-                restoreSnapshot2(snapshot);
-            });
-        });
-        contextMenu2.getItems().addAll(menuHistory2);
-
-        textField1.setContextMenu(contextMenu1);
-        passwordField1.setContextMenu(contextMenu1);
-
-        textField2.setContextMenu(contextMenu2);
-        passwordField2.setContextMenu(contextMenu2);
+        initializeHistory();
     }
 
     private void showMask1() {
@@ -515,93 +456,78 @@ public class ComboField extends FieldPane implements SampleField, KryoSerializab
         visibleText2.setGraphic(iconEYE_OFF2);
     }
 
-    @Override
-    public void write(Kryo kryo, Output output) {
-        output.writeString(nameProperty1.getValue());
-        output.writeBoolean(isShowing1.get());
-        kryo.writeClassAndObject(output, currentSnapshot1);
-        kryo.writeClassAndObject(output, history1);
+    private void openHistory1() {
+        Dialog<Snapshot> dialog = new Dialog<>();
 
-        output.writeString(nameProperty2.getValue());
-        output.writeBoolean(isShowing2.get());
-        kryo.writeClassAndObject(output, currentSnapshot2);
-        kryo.writeClassAndObject(output, history2);
+        dialog.setTitle(NAME_PROGRAM);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+
+        GridOfHistory gridOfHistory = new GridOfHistory(fieldDataObserver1.getHistory());
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPrefSize(480, 400);
+        scrollPane.setContent(gridOfHistory);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        dialog.getDialogPane().setContent(scrollPane);
+        dialog.setResultConverter(param -> gridOfHistory.getSelectedSnapshot());
+
+        Optional<Snapshot> result = dialog.showAndWait();
+
+        result.ifPresent(snapshot -> fieldDataObserver1.getHistory().setCurrent(snapshot));
+    }
+
+    private void openHistory2() {
+        Dialog<Snapshot> dialog = new Dialog<>();
+
+        dialog.setTitle(NAME_PROGRAM);
+
+        dialog.getDialogPane().getButtonTypes().addAll(ButtonType.OK);
+
+        GridOfHistory gridOfHistory = new GridOfHistory(fieldDataObserver2.getHistory());
+
+        ScrollPane scrollPane = new ScrollPane();
+        scrollPane.setPrefSize(480, 400);
+        scrollPane.setContent(gridOfHistory);
+        scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
+        dialog.getDialogPane().setContent(scrollPane);
+        dialog.setResultConverter(param -> gridOfHistory.getSelectedSnapshot());
+
+        Optional<Snapshot> result = dialog.showAndWait();
+
+        result.ifPresent(snapshot -> fieldDataObserver2.getHistory().setCurrent(snapshot));
+    }
+
+    private void makeRemovable() {
+        btn_remove.setOnMouseClicked(event -> ((VBox) this.getParent()).getChildren().remove(this));
     }
 
     @Override
-    public void read(Kryo kryo, Input input) {
-        nameProperty1.setValue(input.readString());
-        isShowing1.set(input.readBoolean());
-        currentSnapshot1 = (Snapshot) kryo.readClassAndObject(input);
-        history1 = (ArrayList<Snapshot>) kryo.readClassAndObject(input);
+    public void setObserver(Observer observer) {
+        fieldDataObserver1.addObserver(observer);
+        fieldDataObserver1.getHistory().addObserver(observer);
 
-        nameProperty2.setValue(input.readString());
-        isShowing2.set(input.readBoolean());
-        currentSnapshot2 = (Snapshot) kryo.readClassAndObject(input);
-        history2 = (ArrayList<Snapshot>) kryo.readClassAndObject(input);
-
-        restoreCurrentSnapshot1();
-        restoreCurrentSnapshot2();
-    }
-
-    private void restoreLastSnapshot1() {
-        textProperty1.set(history1.get(history1.size() - 1).getText());
-    }
-
-    private void restoreCurrentSnapshot1() {
-        textProperty1.set(currentSnapshot1.getText());
-    }
-
-    private void restoreSnapshot1(Snapshot snapshot) {
-        textProperty1.set(snapshot.getText());
-    }
-
-    private Snapshot makeSnapshot1() {
-        Snapshot temp = new Snapshot(textProperty1.get());
-        history1.add(temp);
-        return temp;
-    }
-
-    private void restoreLastSnapshot2() {
-        textProperty2.set(history2.get(history2.size() - 1).getText());
-    }
-
-    private void restoreCurrentSnapshot2() {
-        textProperty2.set(currentSnapshot2.getText());
-    }
-
-    private void restoreSnapshot2(Snapshot snapshot) {
-        textProperty2.set(snapshot.getText());
-    }
-
-    private Snapshot makeSnapshot2() {
-        Snapshot temp = new Snapshot(textProperty2.get());
-        history2.add(temp);
-        return temp;
-    }
-
-    private boolean historyContainsText1() {
-        AtomicBoolean contains = new AtomicBoolean(false);
-
-        history1.forEach(snapshot -> {
-            if (snapshot.getText().equals(textProperty1.getValue())) contains.set(true);
-        });
-
-        return contains.get();
-    }
-
-    private boolean historyContainsText2() {
-        AtomicBoolean contains = new AtomicBoolean(false);
-
-        history2.forEach(snapshot -> {
-            if (snapshot.getText().equals(textProperty2.getValue())) contains.set(true);
-        });
-
-        return contains.get();
+        fieldDataObserver1.addObserver(observer);
+        fieldDataObserver2.addObserver(observer);
     }
 
     @Override
     public Node getNode() {
         return this;
+    }
+
+    @Override
+    public void write(Kryo kryo, Output output) {
+        kryo.writeClassAndObject(output, fieldDataObserver1);
+        kryo.writeClassAndObject(output, fieldDataObserver2);
+    }
+
+    @Override
+    public void read(Kryo kryo, Input input) {
+        fieldDataObserver1 = (FieldDataObserver) kryo.readClassAndObject(input);
+        fieldDataObserver2 = (FieldDataObserver) kryo.readClassAndObject(input);
+
+        fieldDataObserver1.bindAll(nameProperty1, textProperty1, isShowing1);
+        fieldDataObserver2.bindAll(nameProperty2, textProperty2, isShowing2);
     }
 }
