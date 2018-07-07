@@ -3,7 +3,11 @@
 }
 
 .tree-cell > .glyph-icon{
-    -glyph-size: 28px;
+    -glyph-size: 24px;
+}
+
+#buttonRemove:hover{
+    -fx-fill: #FF0000;
 }
 
 #buttonImg{

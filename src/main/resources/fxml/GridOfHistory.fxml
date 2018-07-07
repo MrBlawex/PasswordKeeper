@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<fx:root xmlns:fx="http://javafx.com/fxml/1" fx:id="table" alignment="TOP_CENTER" gridLinesVisible="true"
+         minWidth="-Infinity" prefWidth="430.0" type="javafx.scene.layout.GridPane"
+         xmlns="http://javafx.com/javafx/8.0.171">
+    <columnConstraints>
+        <ColumnConstraints halignment="RIGHT" hgrow="SOMETIMES" maxWidth="-Infinity" minWidth="-Infinity"
+                           prefWidth="34.0"/>
+        <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="-Infinity" minWidth="-Infinity"
+                           prefWidth="200.0"/>
+        <ColumnConstraints halignment="CENTER" hgrow="ALWAYS" maxWidth="-Infinity" minWidth="-Infinity"
+                           prefWidth="150.0"/>
+        <ColumnConstraints fillWidth="false" halignment="CENTER" hgrow="ALWAYS" maxWidth="-Infinity"
+                           minWidth="-Infinity" prefWidth="40.0"/>
+    </columnConstraints>
+    <rowConstraints>
+        <RowConstraints maxHeight="-Infinity" minHeight="-Infinity" prefHeight="30.0" valignment="CENTER"
+                        vgrow="ALWAYS"/>
+    </rowConstraints>
+    <Label text="Значение" GridPane.columnIndex="1"/>
+    <Label text="Дата создания" GridPane.columnIndex="2"/>
+</fx:root>

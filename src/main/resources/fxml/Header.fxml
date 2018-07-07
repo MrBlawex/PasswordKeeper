@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import de.jensd.fx.glyphs.materialdesignicons.MaterialDesignIconView?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.*?>
+<?import javafx.scene.text.Font?>
+<fx:root xmlns:fx="http://javafx.com/fxml/1" fx:id="anchorPane" maxHeight="-Infinity" minHeight="-Infinity"
+         prefHeight="40.0" prefWidth="480.0" styleClass="blockField" stylesheets="@css/style.css"
+         type="javafx.scene.layout.AnchorPane" xmlns="http://javafx.com/javafx/8.0.171">
+    <HBox fx:id="hBox" alignment="CENTER" layoutX="100.0" layoutY="2.0" styleClass="header"
+          AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+          AnchorPane.topAnchor="0.0">
+        <Label fx:id="label" alignment="CENTER" style="-fx-text-fill: ghostwhite;">
+            <font>
+                <Font name="System Bold" size="17.0"/>
+            </font>
+        </Label>
+    </HBox>
+    <MaterialDesignIconView id="buttonRemove" fx:id="btn_remove" boundsType="LOGICAL_VERTICAL_CENTER"
+                            glyphName="WINDOW_CLOSE" layoutX="470.0" layoutY="29.0" size="14" wrappingWidth="14.0"
+                            AnchorPane.rightAnchor="1.0" AnchorPane.topAnchor="1.0"/>
+</fx:root>

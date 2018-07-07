@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.input.KeyCodeCombination?>
+<?import javafx.scene.layout.*?>
+<AnchorPane xmlns:fx="http://javafx.com/fxml/1" fx:id="ach_window" prefHeight="535.0" prefWidth="800.0"
+            stylesheets="@css/style.css" xmlns="http://javafx.com/javafx/8.0.171"
+            fx:controller="passwordkeeper.controller.StorageManagerWindowController">
+    <MenuBar fx:id="menuBar" prefHeight="35.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+             AnchorPane.topAnchor="0.0">
+        <Menu mnemonicParsing="false" text="Файл">
+            <MenuItem mnemonicParsing="false" text="Сохранить в txt"/>
+            <SeparatorMenuItem mnemonicParsing="false"/>
+            <MenuItem mnemonicParsing="false" onAction="#showGenerator" text="Генератор паролей"/>
+            <SeparatorMenuItem mnemonicParsing="false"/>
+            <MenuItem mnemonicParsing="false" text="Настройки хранилища">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="E" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+                </accelerator>
+            </MenuItem>
+            <MenuItem mnemonicParsing="false" onAction="#changeStorageOrExit" text="Сменить хранилище/Выйти">
+                <accelerator>
+                    <KeyCodeCombination alt="UP" code="Q" control="DOWN" meta="UP" shift="UP" shortcut="UP"/>
+                </accelerator>
+            </MenuItem>
+        </Menu>
+        <Menu mnemonicParsing="false" text="Помощь">
+            <MenuItem mnemonicParsing="false" text="Справка"/>
+            <MenuItem mnemonicParsing="false" text="О программе"/>
+        </Menu>
+    </MenuBar>
+    <ScrollPane fx:id="scrollPane" hbarPolicy="NEVER" prefHeight="505.0"
+                prefViewportHeight="450.0" prefViewportWidth="400.0" prefWidth="530.0" vvalue="0.49"
+                AnchorPane.bottomAnchor="5.0" AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="40.0">
+        <VBox prefHeight="56.0" prefWidth="510.0"/>
+    </ScrollPane>
+    <AnchorPane fx:id="ach_leftBar" layoutX="5.0" layoutY="40.0" prefHeight="500.0" prefWidth="265.0"
+                AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.topAnchor="35.0">
+        <AnchorPane disable="true" layoutX="5.0" layoutY="5.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                    AnchorPane.topAnchor="0.0">
+            <Button fx:id="search_btn" focusTraversable="false" layoutX="180.0" mnemonicParsing="false"
+                    prefHeight="31.0" prefWidth="75.0" text="Поиск" AnchorPane.rightAnchor="5.0"
+                    AnchorPane.topAnchor="5.0"/>
+            <TextField fx:id="tf_search" focusTraversable="false" prefHeight="31.0" prefWidth="170.0"
+                       AnchorPane.leftAnchor="5.0" AnchorPane.rightAnchor="85.0" AnchorPane.topAnchor="5.0"/>
+        </AnchorPane>
+        <TreeView fx:id="treeView" focusTraversable="false" layoutX="3.0" layoutY="40.0" prefHeight="455.0"
+                  prefWidth="255.0" styleClass="TreeView" AnchorPane.bottomAnchor="5.0" AnchorPane.leftAnchor="5.0"
+                  AnchorPane.rightAnchor="5.0" AnchorPane.topAnchor="40.0">
+            <padding>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </padding>
+        </TreeView>
+    </AnchorPane>
+</AnchorPane>
